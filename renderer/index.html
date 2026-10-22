@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSM Tunnels</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-db" viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/></symbol>
+  <symbol id="i-cache" viewBox="0 0 16 16"><path d="M8 2 2 5l6 3 6-3-6-3ZM2 8l6 3 6-3M2 11l6 3 6-3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 16 16"><path d="M6 2v3M10 2v3M4 5h8v3a4 4 0 0 1-8 0V5ZM8 12v2"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 2 1.5 13.5h13L8 2Z"/><path d="M8 6.5v3M8 11.6v.1"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="m5.8 5.8 4.4 4.4m0-4.4-4.4 4.4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.8 3 3.6v4c0 3.2 2.2 5.6 5 6.6 2.8-1 5-3.4 5-6.6v-4L8 1.8Z"/><path d="M8 5.5v3M8 10.6v.1"/></symbol>
+  <symbol id="i-term" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><path d="m4.5 6 2 2-2 2M8.5 10.5h3"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 16 16"><g fill="currentColor" stroke="none"><circle cx="3.5" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="12.5" cy="8" r="1.3"/></g></symbol>
+  <symbol id="i-list" viewBox="0 0 16 16"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.1M2.5 8h.1M2.5 12h.1"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.5 3.5 9H8l-1 5.5L12.5 7H8l1-5.5Z"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 16 16"><path d="M6 2h4M6.5 2v4L3 13a1 1 0 0 0 .9 1.5h8.2A1 1 0 0 0 13 13L9.5 6V2"/></symbol>
+  <symbol id="i-server" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.1M4.5 11.25h.1"/></symbol>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3.5 3.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M5 3.5v9l7-4.5-7-4.5Z"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 16 16"><rect x="4" y="4" width="8" height="8" rx="1.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-7"/></symbol>
+  <symbol id="i-ring" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/></symbol>
+  <symbol id="i-tunnel" viewBox="0 0 16 16"><path d="M2 13.5V8a6 6 0 0 1 12 0v5.5M5.5 13.5V8.5a2.5 2.5 0 0 1 5 0v5M1 13.5h14"/></symbol>
+  <symbol id="i-loop" viewBox="0 0 16 16"><path d="M13 6a5.2 5.2 0 0 0-9.6-1.4M3 10a5.2 5.2 0 0 0 9.6 1.4"/><path d="M3 2.2v2.9h2.9M13 13.8v-2.9h-2.9"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="3.5" rx="1"/><path d="M2.5 6v6.5a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V6M6.5 9h3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></symbol>
+  <symbol id="i-back" viewBox="0 0 16 16"><path d="M10 3 5 8l5 5"/></symbol>
+  <symbol id="i-logs" viewBox="0 0 16 16"><rect x="3" y="1.8" width="10" height="12.4" rx="1.5"/><path d="M5.8 5h4.4M5.8 8h4.4M5.8 11h2.6"/></symbol>
+  <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.3v3.9M8 4.9v.1"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 16 16"><path d="m6 3.5 4.5 4.5L6 12.5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 16 16"><path d="M4 1.8h5.5L12.5 5v9.2H4Z"/><path d="M9.5 1.8V5h3"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></symbol>
+  <symbol id="i-key" viewBox="0 0 16 16"><circle cx="4.6" cy="8" r="3"/><path d="M7.6 8h6.9M11.6 8v2.6M14 8v2"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c1.7 1.8 2.5 3.8 2.5 6S9.7 12.2 8 14C6.3 12.2 5.5 10.2 5.5 8S6.3 3.8 8 2Z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 16 16"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8Z"/><circle cx="8" cy="8" r="2"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 16 16"><path d="M5.5 3.5v9M10.5 3.5v9"/></symbol>
+</defs></svg>
+
+<div class="win" id="win">
+  <aside class="side" aria-label="Sidebar">
+    <div class="side-drag" aria-hidden="true"></div>
+    <nav class="nav" id="side" aria-label="Filters"></nav>
+    <div class="side-ft">
+      <div id="sideAws"></div>
+      <div id="sideTools" class="side-tools"></div>
+      <span><i class="pulse"></i>Watching ps for Terminal sessions</span>
+      <div class="side-act" id="sideAct"></div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="tb">
+      <div><h1 id="title">All Tunnels</h1><p class="sub" id="subtitle"></p></div>
+      <button class="btn ic" id="bBack" data-a="view" data-v="all" aria-label="Back to All Tunnels" title="Back to All Tunnels" style="order:-1" hidden><svg class="i"><use href="#i-back"/></svg></button>
+      <label class="search"><svg class="i"><use href="#i-search"/></svg><span class="vh">Search tunnels</span><input id="q" type="search" placeholder="Name, host, port…" spellcheck="false"></label>
+      <span class="tba" id="tbActs">
+        <button class="btn" id="bAll" data-a="connectAll" title="Connect idle tunnels in this view (⇧⌘K)"><svg class="i"><use href="#i-play"/></svg><span class="lbl">Connect All…</span></button>
+        <button class="btn" id="bNone" data-a="disconnectAll" title="Stop every SSM session, including ones started in Terminal (⌥⇧⌘K)"><svg class="i"><use href="#i-stop"/></svg><span class="lbl">Disconnect All</span></button>
+        <button class="btn ic pri" data-a="add" aria-label="New tunnel" title="New tunnel (⌘N)"><svg class="i"><use href="#i-plus"/></svg></button>
+      </span>
+      <span class="tba" id="tbLogs" hidden>
+        <button class="btn live" id="bLive" data-l="live" aria-pressed="true" title="Live: new entries appear at the top of their group as they are written"><i class="pulse" aria-hidden="true"></i><span class="lbl">Live</span></button>
+        <button class="btn" id="bOpen" data-l="open" title="Show the log file in Finder" aria-label="Open Log File"><svg class="i"><use href="#i-doc"/></svg><span class="lbl">Open Log File</span></button>
+        <button class="btn" id="bCopy" data-l="copyVis" title="Copy every entry that matches the filters, as text (collapsed groups included)" aria-label="Copy Visible"><svg class="i"><use href="#i-copy"/></svg><span class="lbl">Copy Visible</span></button>
+      </span>
+    </div>
+    <div id="banner"></div>
+    <div class="list" id="list"></div>
+    <div class="lg-pane" id="logsPane" hidden>
+      <div class="lg-bar" role="group" aria-label="Log filters">
+        <div class="seg" id="fLevel" role="group" aria-label="Level"><button data-l="lv" data-v="all">All</button><button data-l="lv" data-v="warn" title="Warnings and errors">Warnings+</button><button data-l="lv" data-v="error">Errors</button></div>
+        <div class="seg" id="fSrc" role="group" aria-label="Source"><button data-l="src" data-v="both" title="App and CLI">Both</button><button data-l="src" data-v="app">App</button><button data-l="src" data-v="cli">CLI</button></div>
+        <select id="fRange" aria-label="Time range"><option value="hour">Last hour</option><option value="today">Today</option><option value="7d">Last 7 days</option><option value="all">All time</option></select>
+        <span class="sp"></span>
+        <button class="btn sm" id="bExp" data-l="expandAll">Expand All</button><button class="btn sm" id="bCol" data-l="collapseAll">Collapse All</button>
+      </div>
+      <div class="lg-pend" id="lgPend" hidden></div>
+      <div class="list" id="lgList"></div>
+      <div class="lg-ft" id="lgFt"></div>
+    </div>
+    <div class="toast" id="toast"></div>
+  </main>
+</div>
+
+<div class="menu" id="menu" role="menu" aria-label="Tunnel actions" hidden></div>
+<dialog id="dForm" aria-labelledby="fTitle">
+  <form id="form" novalidate autocomplete="off">
+    <div class="dlg-hd"><h2 id="fTitle">New Tunnel</h2><p class="sub" id="fSub"></p></div>
+    <div class="dlg-bd">
+      <div class="cols">
+        <div class="f" data-f="name"><label for="iName">Name</label><input id="iName" class="mono" spellcheck="false" placeholder="onyx-prod" aria-describedby="mName"><div class="msg err" id="mName"></div></div>
+        <div class="f"><span class="lbl" id="lEnv">Environment</span>
+          <div class="seg" id="envSeg" role="group" aria-labelledby="lEnv"><button type="button" data-env="prod">Production</button><button type="button" data-env="stg">Staging</button><button type="button" data-env="other">Other</button></div>
+          <div class="msg warn" id="mEnv"></div></div>
+      </div>
+      <div class="f"><label for="iDesc">Description</label><input id="iDesc" placeholder="Onyx DB"></div>
+      <div class="f" id="fProf" hidden><label for="iProf">AWS profile</label><select id="iProf" aria-describedby="mProf"></select><div class="msg" id="mProf" aria-live="polite"></div></div>
+      <div class="cols b">
+        <div class="f"><label for="iBastion">Bastion instance</label><select id="iBastion"></select></div>
+        <div class="f"><label for="iRegion">Region</label><select id="iRegion"><option>us-east-1</option></select></div>
+      </div>
+      <div class="f" data-f="target" id="fTarget"><label for="iTarget">Instance ID</label><input id="iTarget" class="mono" spellcheck="false" placeholder="i-0357e26df0d26b2ae" aria-describedby="mTarget"><div class="msg err" id="mTarget"></div></div>
+      <div class="f" data-f="host"><label for="iHost">Remote host</label><input id="iHost" class="mono" spellcheck="false" placeholder="mydb.xxxx.us-east-1.rds.amazonaws.com" aria-describedby="mHost"><div class="msg err" id="mHost"></div></div>
+      <div class="cols">
+        <div class="f" data-f="port"><label for="iPort">Remote port</label><input id="iPort" class="mono" inputmode="numeric" aria-describedby="mPort">
+          <div class="chips" id="presets" aria-label="Common ports"><button type="button" class="chip" data-p="5432" title="5432">Postgres</button><button type="button" class="chip" data-p="6379" title="6379">Redis</button><button type="button" class="chip" data-p="3306" title="3306">MySQL</button><button type="button" class="chip" data-p="443" title="443">HTTPS</button></div>
+          <div class="msg err" id="mPort"></div></div>
+        <div class="f" data-f="local"><label for="iLocal">Local port (localhost)</label>
+          <div class="inrow"><input id="iLocal" class="mono" inputmode="numeric" aria-describedby="mLocal"><button type="button" class="btn sm" id="bSuggest" title="Pick the next free port in your usual range">Suggest</button></div>
+          <div class="msg" id="mLocal" aria-live="polite"></div>
+          <div><button type="button" class="btn sm" id="bFix" hidden></button></div></div>
+      </div>
+      <div class="autobox"><div><b id="lAuto">Auto-connect</b><p id="dAuto">Connects whenever SSM Tunnels opens, including at login, and reconnects if the session drops: 5 retries (2s to 32s), and right after wake.</p></div><button type="button" class="sw" role="switch" id="iAuto" aria-checked="false" aria-labelledby="lAuto" aria-describedby="dAuto"></button></div>
+      <div class="f"><span class="lbl">Command the app will run</span><div class="cmdwrap"><pre class="cmd" id="cmd"></pre><button type="button" class="btn sm" id="bCopyCmd">Copy</button></div></div>
+    </div>
+    <div class="dlg-ft"><button type="button" class="btn red" id="bDel" hidden>Delete</button><span class="sp"></span><button type="button" class="btn" id="bCancel">Cancel</button><button type="button" class="btn" id="bSaveGo">Save &amp; Connect</button><button type="submit" class="btn pri" id="bSave">Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="dAll" aria-labelledby="aTitle">
+  <div class="dlg-hd"><h2 id="aTitle">Connect All</h2><p class="sub" id="aSub"></p></div>
+  <div class="dlg-bd" id="aBody"></div>
+  <div class="dlg-ft"><span class="sp"></span><button class="btn" data-close>Cancel</button><button class="btn pri" id="aGo">Connect</button></div>
+</dialog>
+
+<dialog id="dSet" aria-labelledby="sTitle">
+  <div class="dlg-hd"><h2 id="sTitle">Settings</h2></div>
+  <div class="dlg-bd">
+    <div class="set">
+      <div><h3 id="lLogin">Open at login</h3><p id="dLogin">When your Mac starts, SSM Tunnels opens in the menu bar (no window), connects the tunnels marked <b>Auto</b>, and keeps them up: a dropped session retries after 2s, 4s, 8s, 16s and 32s, and right away after wake from sleep.</p></div>
+      <button class="sw" role="switch" id="sLogin" data-a="login" aria-labelledby="lLogin" aria-describedby="dLogin"></button>
+      <p class="full" id="nLogin" hidden>Takes effect in the packaged app. When started with npm start, macOS can’t register it as a login item.</p>
+      <div class="full tags" id="sAuto"></div>
+    </div>
+    <div class="set">
+      <div><h3><label for="sArch">Auto-archive tunnels that keep failing</label></h3><p>Archived tunnels stop retrying and leave the list and menu bar. They stay in storage; restore any time from Archived.</p></div>
+      <select id="sArch"><option value="3">After 3 days</option><option value="5">After 5 days</option><option value="7">After 7 days</option><option value="14">After 14 days</option><option value="30">After 30 days</option><option value="0">Never</option></select>
+      <div><h3><label for="sPurge">Delete archived after</label></h3></div>
+      <select id="sPurge"><option value="3">After 3 days</option><option value="5">After 5 days</option><option value="7">After 7 days</option><option value="14">After 14 days</option><option value="30">After 30 days</option><option value="0">Never</option></select>
+      <ul class="rules full"><li>The clock starts at a tunnel’s first failure and resets once it stays connected for 10 seconds. After 5 failed retries a tunnel stops retrying until you press Retry.</li><li>Days when <b>every</b> tunnel fails don’t count. That points to an expired AWS login or no network, not a bad tunnel.</li><li>Archived tunnels are deleted permanently after the chosen number of days unless you restore them.</li></ul>
+    </div>
+    <div class="set">
+      <div><h3 id="lQuit">Disconnect tunnels when quitting</h3><p id="dQuit">On: quitting stops the tunnels SSM Tunnels started. Off: they keep running and appear with the Terminal badge next time. Sessions started in Terminal are never touched on quit.</p></div>
+      <button class="sw" role="switch" id="sQuit" data-a="quit" aria-labelledby="lQuit" aria-describedby="dQuit"></button>
+    </div>
+    <div class="set" id="sAwsRow" hidden>
+      <div><h3 id="lAws">AWS</h3><p id="sAws"></p></div>
+      <button class="btn" data-a="awsFromSet" aria-describedby="sAws">Manage Profiles…</button>
+    </div>
+    <div class="set">
+      <div class="full"><h3>Tools</h3></div>
+      <div class="full" id="sTools"></div>
+      <p class="full">Tunnels are stored in <span class="mono" id="sPath"></span></p>
+    </div>
+  </div>
+  <div class="dlg-ft"><span class="sp"></span><button class="btn pri" data-close>Done</button></div>
+</dialog>
+
+<dialog id="dAws" class="wide" aria-labelledby="wTitle">
+  <div class="dlg-hd"><h2 id="wTitle" tabindex="-1">AWS Profiles</h2><p class="sub" id="wSub"></p></div>
+  <div class="dlg-bd" id="wBody"></div>
+  <div class="dlg-ft" id="wFt"></div>
+</dialog>
+
+<dialog id="dKeys" aria-labelledby="kTitle">
+  <div class="dlg-hd"><h2 id="kTitle">Keyboard Shortcuts</h2></div>
+  <div class="dlg-bd"><table class="keys"><thead><tr><th>Action</th><th>Shortcut</th></tr></thead><tbody>
+    <tr><td>New tunnel</td><td><kbd>⌘N</kbd></td></tr>
+    <tr><td>Search</td><td><kbd>⌘F</kbd></td></tr>
+    <tr><td>Select previous / next</td><td><kbd>↑</kbd><kbd>↓</kbd></td></tr>
+    <tr><td>Connect / disconnect selected</td><td><kbd>Space</kbd></td></tr>
+    <tr><td>Toggle Auto-connect</td><td><kbd>⌥⌘A</kbd></td></tr>
+    <tr><td>Retry now</td><td><kbd>⌘R</kbd></td></tr>
+    <tr><td>Edit selected</td><td><kbd>⌘I</kbd> <kbd>↩</kbd></td></tr>
+    <tr><td>Duplicate</td><td><kbd>⌘D</kbd></td></tr>
+    <tr><td>Copy localhost:port</td><td><kbd>⌘C</kbd></td></tr>
+    <tr><td>Delete (undo in toast)</td><td><kbd>⌘⌫</kbd></td></tr>
+    <tr><td>Connect all…</td><td><kbd>⇧⌘K</kbd></td></tr>
+    <tr><td>Disconnect all</td><td><kbd>⌥⇧⌘K</kbd></td></tr>
+    <tr><td>Settings</td><td><kbd>⌘,</kbd></td></tr>
+    <tr><td>Menu bar popover (global)</td><td><kbd>⌃⌥T</kbd></td></tr>
+    <tr><td>Close sheet / popover</td><td><kbd>Esc</kbd></td></tr>
+  </tbody></table></div>
+  <div class="dlg-ft"><span class="sp"></span><button class="btn pri" data-close>Done</button></div>
+</dialog>
+
+<div id="live" class="vh" aria-live="polite"></div>
+
+<script src="../lib/validate.js"></script>
+<script src="logic.js"></script>
+<script src="common.js"></script>
+<script src="logs.js"></script>
+<script src="aws.js"></script>
+<script src="renderer.js"></script>
+</body>
+</html>

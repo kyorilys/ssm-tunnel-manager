@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSM Tunnels AWS Sign-in</title>
+<style>
+/* ===== Shared with mockup-v3.html / renderer/styles.css (tokens + components, unchanged) ===== */
+:root{
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+  --wall:linear-gradient(140deg,#8fb8f2 0%,#b9a7ee 42%,#f2b9a0 100%);
+  --chrome:rgba(236,236,240,.72);--chrome2:rgba(246,246,248,.88);--content:#fff;
+  --text:#1d1d1f;--text2:#5d5d62;--text3:#6e6e73;
+  --line:rgba(0,0,0,.09);--line2:rgba(0,0,0,.2);--fill:rgba(0,0,0,.055);--fill2:rgba(0,0,0,.1);--hover:rgba(0,0,0,.035);--sel:rgba(0,122,255,.09);
+  --accent:#007aff;--accent-t:#0062cc;--accent-f:rgba(0,122,255,.12);--btn:#0066d6;
+  --green:#1b7d36;--green-s:#34c759;--green-f:rgba(52,199,89,.16);
+  --red:#c4001a;--red-s:#ff3b30;--red-f:rgba(255,59,48,.1);
+  --orange:#a34700;--orange-s:#ff9500;--orange-f:rgba(255,149,0,.14);--orange-w:rgba(255,149,0,.06);
+  --sw-off:rgba(0,0,0,.13);--focus:rgba(0,122,255,.5);--toast-act:#5eb0ff;
+  --shadow:0 0 0 .5px rgba(0,0,0,.22),0 22px 70px rgba(0,0,0,.3);--pshadow:0 0 0 .5px rgba(0,0,0,.18),0 10px 36px rgba(0,0,0,.22);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  color-scheme:dark;--wall:linear-gradient(140deg,#14213d 0%,#2e1f4d 45%,#4a2620 100%);
+  --chrome:rgba(40,40,44,.7);--chrome2:rgba(44,44,48,.9);--content:#1e1e20;--text:#f2f2f5;--text2:#a6a6ad;--text3:#8e8e95;
+  --line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.2);--fill:rgba(255,255,255,.075);--fill2:rgba(255,255,255,.13);--hover:rgba(255,255,255,.04);--sel:rgba(10,132,255,.2);
+  --accent:#0a84ff;--accent-t:#5aa9ff;--accent-f:rgba(10,132,255,.2);--btn:#1673e0;
+  --green:#40d763;--green-s:#30d158;--green-f:rgba(48,209,88,.17);--red:#ff6961;--red-s:#ff453a;--red-f:rgba(255,69,58,.15);
+  --orange:#ffac33;--orange-s:#ff9f0a;--orange-f:rgba(255,159,10,.17);--orange-w:rgba(255,159,10,.07);
+  --sw-off:rgba(255,255,255,.17);--focus:rgba(10,132,255,.6);--toast-act:#0062cc;
+  --shadow:0 0 0 .5px rgba(255,255,255,.12),0 22px 70px rgba(0,0,0,.6);--pshadow:0 0 0 .5px rgba(255,255,255,.12),0 10px 36px rgba(0,0,0,.5);
+}}
+:root[data-theme=dark]{
+  color-scheme:dark;--wall:linear-gradient(140deg,#14213d 0%,#2e1f4d 45%,#4a2620 100%);
+  --chrome:rgba(40,40,44,.7);--chrome2:rgba(44,44,48,.9);--content:#1e1e20;--text:#f2f2f5;--text2:#a6a6ad;--text3:#8e8e95;
+  --line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.2);--fill:rgba(255,255,255,.075);--fill2:rgba(255,255,255,.13);--hover:rgba(255,255,255,.04);--sel:rgba(10,132,255,.2);
+  --accent:#0a84ff;--accent-t:#5aa9ff;--accent-f:rgba(10,132,255,.2);--btn:#1673e0;
+  --green:#40d763;--green-s:#30d158;--green-f:rgba(48,209,88,.17);--red:#ff6961;--red-s:#ff453a;--red-f:rgba(255,69,58,.15);
+  --orange:#ffac33;--orange-s:#ff9f0a;--orange-f:rgba(255,159,10,.17);--orange-w:rgba(255,159,10,.07);
+  --sw-off:rgba(255,255,255,.17);--focus:rgba(10,132,255,.6);--toast-act:#0062cc;
+  --shadow:0 0 0 .5px rgba(255,255,255,.12),0 22px 70px rgba(0,0,0,.6);--pshadow:0 0 0 .5px rgba(255,255,255,.12),0 10px 36px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:13px/1.38 var(--font);color:var(--text);background:var(--wall) fixed;-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:default}
+:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+[hidden]{display:none!important}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--mono)}
+.i{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.sp{flex:1}
+.menubar{position:fixed;inset:0 0 auto;height:26px;display:flex;align-items:center;gap:16px;padding:0 12px;background:var(--chrome);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);z-index:30}
+.tray{position:relative;display:flex;align-items:center;gap:4px;height:22px;padding:0 7px;border:0;border-radius:5px;background:none;font-weight:600;font-variant-numeric:tabular-nums}
+.tray .i{width:16px;height:16px}.tray[aria-expanded=true]{background:var(--fill2)}
+.tray .tdot{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--red-s);box-shadow:0 0 0 1.5px var(--chrome2)}
+.win{position:absolute;top:46px;left:50%;transform:translateX(-50%);width:min(1000px,calc(100vw - 32px));height:max(440px,min(680px,calc(100vh - 110px)));display:grid;grid-template-columns:224px minmax(0,1fr);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.side{display:flex;flex-direction:column;min-height:0;background:var(--chrome);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);border-right:1px solid var(--line)}
+.lights{display:flex;gap:8px;padding:18px 18px 8px}
+.lights i{width:12px;height:12px;border-radius:50%;background:#ff5f57;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2)}.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
+.nav{flex:1;overflow:auto;padding:0 10px 10px}
+.nav h3{font-size:11px;font-weight:600;color:var(--text3);margin:14px 8px 3px}
+.nav button{display:flex;align-items:center;gap:8px;width:100%;min-height:28px;padding:0 8px;border:0;border-radius:6px;background:none;text-align:left}
+.nav button:hover{background:var(--hover)}.nav button[aria-current]{background:var(--fill2);font-weight:600}
+.nav .i{width:16px;height:16px;color:var(--accent)}.nav .prod .i{color:var(--orange-s)}.nav .attn .i{color:var(--red-s)}.nav .ok .i{color:var(--green-s)}
+.nav .n{margin-left:auto;font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;font-weight:400}
+.nav .two{min-height:40px}.nav .lb{display:flex;flex-direction:column;line-height:1.25;min-width:0}.nav .lb small{color:var(--text2);font-size:11px}
+.side-ft{padding:10px 16px 12px;border-top:1px solid var(--line);font-size:11px;color:var(--text2);display:grid;gap:3px}
+.side-ft span{display:flex;align-items:center;gap:6px}.side-ft .i{width:12px;height:12px;color:var(--green)}
+.side-act{display:flex;align-items:center;margin:4px -7px -4px}
+.link{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 7px;border:0;border-radius:5px;background:none;color:var(--text2);font-size:11px;white-space:nowrap}
+.link:hover{background:var(--fill);color:var(--text)}.side-ft .link .i{color:var(--text2)}
+.pulse{width:6px;height:6px;margin:0 3px;border-radius:50%;background:var(--green-s);animation:pulse 2s ease-in-out infinite}
+.main{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--content)}
+.tb{flex:none;height:52px;display:flex;align-items:center;gap:8px;padding:0 12px 0 20px;border-bottom:1px solid var(--line)}
+.tb h1{font-size:15px;font-weight:700;margin:0;line-height:1.15;white-space:nowrap}
+.sub{font-size:11px;color:var(--text2);margin:0}
+.tb>div:first-child{min-width:0}.tb>div:first-child .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.search{display:flex;align-items:center;gap:6px;height:28px;flex:0 1 200px;min-width:110px;margin-left:auto;padding:0 8px;border-radius:7px;background:var(--fill);color:var(--text2)}
+.search input{border:0;background:none;outline:none;width:100%;min-width:0;color:var(--text)}.search:focus-within{box-shadow:0 0 0 3px var(--focus)}
+.btn{height:28px;padding:0 11px;border:0;border-radius:6px;background:var(--fill);display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-weight:500;flex:none}
+.btn:hover{background:var(--fill2)}.btn:disabled{opacity:.4;pointer-events:none}
+.btn.pri{background:var(--btn);color:#fff}.btn.pri:hover{filter:brightness(1.08)}
+.btn.sm{height:24px;padding:0 9px;font-size:12px}.btn.ghost{background:none;color:var(--accent-t)}.btn.red{color:var(--red)}
+.btn.ic{width:28px;padding:0;justify-content:center}.btn.sm.ic{width:24px}
+.banner{flex:none;display:flex;align-items:center;gap:10px;padding:7px 12px 7px 20px;background:var(--orange-f);border-bottom:1px solid color-mix(in srgb,var(--orange-s) 40%,transparent)}
+.banner>.i{color:var(--orange);width:16px;height:16px}.banner b{color:var(--orange)}
+.list{flex:1;overflow:auto;padding:0 0 28px}
+.sec{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:14px 20px 6px 24px;background:var(--content)}
+.sec h2{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin:0}.sec .meta{font-size:11px;color:var(--text2)}.sec.prod h2{color:var(--orange)}
+.rows{list-style:none;margin:0;padding:0 8px;display:grid;gap:1px}
+.row{position:relative;display:grid;grid-template-columns:66px minmax(0,1fr) 172px 56px 44px 28px;column-gap:12px;align-items:center;min-height:54px;padding:6px 8px 6px 16px;border-radius:8px}
+.row:hover{background:var(--hover)}
+.row.prod::before{content:"";position:absolute;left:5px;top:10px;bottom:10px;width:4px;border-radius:2px;background:repeating-linear-gradient(135deg,var(--orange-s) 0 3px,transparent 3px 6px)}
+.row.prod.active::before,.row.prod.connecting::before{background:var(--orange-s)}.row.prod.active{background:var(--orange-w)}
+.port{height:30px;border:0;border-radius:7px;background:var(--fill);color:var(--text2);font:600 13px/1 var(--mono);font-variant-numeric:tabular-nums}
+.active .port{background:var(--green-f);color:var(--green)}.connecting .port{background:var(--accent-f);color:var(--accent-t)}.failed .port{background:var(--red-f);color:var(--red)}
+.mn{min-width:0}.nm{display:flex;align-items:center;gap:7px;min-width:0}
+.nm b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.row:not(.active):not(.connecting) .nm b{font-weight:500}
+.badge{flex:none;font-size:10px;font-weight:700;letter-spacing:.05em;line-height:16px;padding:0 5px;border-radius:4px}.badge.prod{background:var(--orange-s);color:#000}
+.kind{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--text2);flex:none}.kind .i{width:12px;height:12px}
+.sub2{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}.sub2 .mono{font-size:11px}
+.st{min-width:0;font-size:12px}
+.st .l1{display:flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st .l2{display:flex;align-items:center;gap:6px;margin-top:2px;color:var(--text2);font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.st.ok .l1{color:var(--green)}.st.err .l1{color:var(--red)}.st.busy .l1{color:var(--accent-t)}.st.note .l1{color:var(--text2);font-weight:400}.st .i{width:13px;height:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.spin{width:11px;height:11px;flex:none;border-radius:50%;border:2px solid var(--accent-f);border-top-color:var(--accent);animation:spin .8s linear infinite}
+.sw{position:relative;width:44px;height:28px;padding:0;border:0;border-radius:14px;background:none}
+.sw::before{content:"";position:absolute;inset:3px;border-radius:11px;background:var(--sw-off);transition:background .2s}
+.sw::after{content:"";position:absolute;top:5px;left:5px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3),0 0 0 .5px rgba(0,0,0,.08);transition:transform .2s}
+.sw[aria-checked=true]::before{background:var(--green-s)}.sw[aria-checked=true]::after{transform:translateX(16px)}
+.sw[aria-checked=mixed]::before{background:var(--accent)}.sw[aria-checked=mixed]::after{transform:translateX(8px)}
+.auto{display:inline-flex;align-items:center;justify-content:center;gap:3px;width:56px;height:22px;padding:0;border:0;border-radius:11px;background:none;box-shadow:inset 0 0 0 1px var(--line2);color:var(--text3);font-size:11px;font-weight:600}
+.auto .i{width:11px;height:11px;stroke-width:1.9}.auto:hover{background:var(--fill);color:var(--text)}.auto[aria-pressed=true]{background:var(--accent-f);color:var(--accent-t);box-shadow:none}
+.more{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;color:var(--text2);opacity:0}
+.more:hover{background:var(--fill)}.row:hover .more,.row:focus-within .more{opacity:1}
+.strip{grid-column:2/-1;display:flex;align-items:center;gap:8px;margin:6px 0 2px;padding:5px 6px 5px 10px;border-radius:7px;font-size:12px}
+.strip>span{flex:1;min-width:0}.strip.err{background:var(--red-f)}.strip.err>.i{color:var(--red)}.strip small{display:block;color:var(--text2);margin-top:2px;font-size:11.5px}
+.eline{display:block;font:11px/1.45 var(--mono);overflow-wrap:anywhere}
+.empty{padding:56px 20px;text-align:center;color:var(--text2)}.empty .i{display:block;width:28px;height:28px;margin:0 auto 8px;color:var(--text3)}
+.toast{position:absolute;left:50%;bottom:16px;z-index:5;display:flex;align-items:center;gap:8px;padding:7px 8px 7px 14px;border-radius:9px;background:var(--text);color:var(--content);font-weight:500;box-shadow:var(--pshadow);opacity:0;transform:translate(-50%,8px);pointer-events:none;transition:opacity .18s,transform .18s}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{height:24px;padding:0 6px;border:0;background:none;color:var(--toast-act);font-weight:600}.toast:not(:has(button)){padding-right:14px}
+.menu{position:fixed;z-index:50;min-width:230px;padding:5px;border-radius:9px;background:var(--chrome2);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);box-shadow:var(--pshadow)}
+.menu button{display:flex;align-items:center;gap:6px;width:100%;height:24px;padding:0 10px;border:0;border-radius:5px;background:none;text-align:left}
+.menu button:hover,.menu button:focus{background:var(--accent);color:#fff;outline:none}.menu hr{border:0;border-top:1px solid var(--line);margin:4px 8px}
+.pop{position:fixed;top:30px;right:12px;z-index:15;width:340px;max-height:calc(100vh - 100px);display:flex;flex-direction:column;border-radius:12px;background:var(--chrome2);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);box-shadow:var(--pshadow);overflow:hidden}
+.pop-hd{display:flex;align-items:baseline;gap:8px;padding:12px 14px 6px}
+.pop-warn{display:flex;align-items:center;gap:8px;margin:4px 10px;padding:6px 6px 6px 10px;border-radius:8px;font-size:12px;background:var(--orange-f)}
+.pop-warn>.i{color:var(--orange)}.pop-warn b{color:var(--orange)}.pop-warn.e{background:var(--red-f)}.pop-warn.e>.i,.pop-warn.e b{color:var(--red)}
+.pop-list{overflow:auto;padding:2px 6px 6px}.pop h4{font-size:11px;font-weight:600;color:var(--text3);margin:10px 8px 2px}
+.prow{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto;gap:8px;align-items:center;min-height:38px;padding:2px 4px 2px 8px;border-radius:7px}
+.prow:hover{background:var(--hover)}.prow .dot{background:none;box-shadow:inset 0 0 0 1.5px var(--text3)}
+.prow.active .dot{background:var(--green-s);box-shadow:none}.prow.connecting .dot{background:var(--accent);box-shadow:none;animation:pulse 1.2s infinite}.prow.failed .dot{background:var(--red-s);box-shadow:none}
+.prow .pt{display:flex;align-items:center;gap:6px}.prow .pt b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow small{display:block;color:var(--text2);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.prow.failed small{color:var(--red)}
+.prow .port-s{font:500 12px var(--mono);color:var(--text2)}.prow .sw{transform:scale(.85)}
+.pop-ft{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--line)}
+dialog{position:fixed;inset:auto;margin:0;padding:0;border:0;border-radius:12px;background:var(--content);color:var(--text);box-shadow:var(--pshadow);width:min(560px,calc(100vw - 24px));overflow:hidden}
+dialog::backdrop{background:rgba(0,0,0,.22)}dialog[open]{animation:drop .22s ease-out}
+/* A sheet never scrolls as a whole: header and buttons stay put, only the body (list, table, form) scrolls. */
+dialog[open],dialog[open]>form{display:flex;flex-direction:column;min-height:0}
+dialog[open]>form{flex:1 1 auto}
+.dlg-hd,.dlg-ft{flex:none}
+.dlg-bd,#wBody{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
+.dlg-hd{padding:16px 20px 2px}.dlg-hd h2{font-size:15px;margin:0 0 2px}.dlg-hd h2:focus{outline:none}
+.dlg-bd{display:grid;gap:10px;padding:10px 20px 4px}
+.dlg-ft{display:flex;align-items:center;gap:8px;padding:14px 20px 16px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.cols.b{grid-template-columns:2fr 1fr}
+.f{display:grid;gap:4px;align-content:start;min-width:0}.f label,.lbl{font-size:12px;font-weight:500;color:var(--text2)}
+.f input,.f select{width:100%;height:28px;padding:0 8px;border:1px solid var(--line2);border-radius:6px;background:var(--content)}
+.f input:focus,.f select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--focus)}
+.f select:disabled{background:var(--fill);color:var(--text2);opacity:1}.f input.mono{font-size:12px}.f input[aria-invalid=true]{border-color:var(--red-s)}
+.inrow{display:flex;gap:6px}
+.msg{font-size:11.5px;line-height:16px;color:var(--text2)}.msg:empty{display:none}.msg.ok{color:var(--green)}.msg.warn{color:var(--orange)}.msg.err{color:var(--red)}
+.seg{display:inline-flex;gap:2px;padding:2px;border-radius:7px;background:var(--fill)}
+.seg button{flex:1;height:24px;padding:0 10px;border:0;border-radius:5px;background:none;font-size:12px}
+.seg button[aria-pressed=true]{background:var(--content);box-shadow:0 1px 2px rgba(0,0,0,.18);font-weight:600}.seg button[data-env=prod][aria-pressed=true]{background:var(--orange-s);color:#000}
+.chips{display:flex;flex-wrap:wrap;gap:4px}.chip{height:20px;padding:0 7px;border:0;border-radius:10px;background:var(--fill);font-size:11px;color:var(--text2)}
+.cmdwrap{position:relative}.cmdwrap .btn{position:absolute;top:6px;right:6px}
+.cmd{margin:0;padding:10px 64px 10px 12px;border-radius:8px;background:var(--fill);font:11.5px/1.55 var(--mono);white-space:pre-wrap;word-break:break-all;color:var(--text2)}.cmd b{color:var(--text);font-weight:600}
+.tags{display:flex;flex-wrap:wrap;gap:4px}.tag{padding:2px 8px;border-radius:6px;background:var(--fill);font-size:12px}.tag.prod{background:var(--orange-f)}.tag .mono{font-size:11px;color:var(--text2)}
+.set{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:start;padding:12px 0 0;border-top:1px solid var(--line)}
+.set:first-child{border:0;padding-top:0}.set h3{font-size:13px;margin:0}.set p{margin:2px 0 0;font-size:12px;color:var(--text2)}.set .full{grid-column:1/-1}
+.set select{height:28px;padding:0 8px;border:1px solid var(--line2);border-radius:6px;background:var(--content)}
+.tool{display:flex;align-items:center;gap:6px;font-size:12px}.tool .i{color:var(--green)}
+.autobox{display:flex;gap:12px;align-items:center;padding:8px 6px 8px 12px;border-radius:8px;background:var(--fill);text-align:left}
+.autobox>div{flex:1;min-width:0}.autobox p{margin:1px 0 0;font-size:11.5px;color:var(--text2)}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes pulse{50%{opacity:.35}}@keyframes drop{from{opacity:0;transform:translateY(-10px)}}
+/* mock controls: deliberately NOT app chrome */
+.mock{position:fixed;left:12px;right:12px;bottom:10px;z-index:20;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:7px 10px;border-radius:10px;background:rgba(18,18,22,.86);color:#eee;font-size:12px;border:1px dashed rgba(255,255,255,.35);width:max-content;max-width:calc(100vw - 24px);margin:0 auto}
+.mock b{font-size:10px;letter-spacing:.1em;color:#ffd60a}
+.mock button{height:24px;padding:0 8px;border-radius:5px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff}
+.mock button:hover{background:rgba(255,255,255,.18)}.mock button[aria-pressed=true]{background:#fff;color:#000}.mock .sep{width:1px;height:16px;background:rgba(255,255,255,.2)}.mock small{color:#bbb}
+
+/* ===== New: AWS sign-in. Blue = "sign-in needed" (calm, actionable); red only when something actually failed. ===== */
+@media (min-width:1400px){.win{left:calc(50% - 180px)}}
+.tray .tdot.k{background:var(--accent)}
+.banner.aws{background:var(--accent-f);border-bottom-color:color-mix(in srgb,var(--accent) 30%,transparent)}
+.banner.aws>.i{color:var(--accent-t)}.banner.aws b{color:var(--text)}.banner .spin{width:14px;height:14px}
+.banner.aws.err{background:var(--red-f);border-bottom-color:color-mix(in srgb,var(--red-s) 35%,transparent)}.banner.aws.err>.i{color:var(--red)}
+.banner>span:not(.sp){min-width:0}
+.code{flex:none;font:600 13px/1 var(--mono);letter-spacing:.08em;padding:4px 7px;border-radius:6px;background:var(--content);color:var(--text);box-shadow:inset 0 0 0 1px var(--line2)}
+.pchip{display:inline-flex;align-items:center;gap:3px;flex:none;font:500 10.5px/16px var(--mono);padding:0 6px;border-radius:8px;background:var(--fill);color:var(--text2)}
+.pchip .i{width:10px;height:10px}.pchip.miss{background:var(--red-f);color:var(--red)}
+.st.wait .l1{color:var(--accent-t)}.st .tx{overflow:hidden;text-overflow:ellipsis}
+.prow.waiting .dot{box-shadow:inset 0 0 0 1.5px var(--accent)}.prow.waiting small{color:var(--accent-t)}
+.pop-warn.k{background:var(--accent-f)}.pop-warn.k>.i{color:var(--accent-t)}.pop-warn.k b{color:var(--text)}.pop-warn .code{font-size:11.5px;padding:2px 5px}
+.side-ft .aws-st{display:flex;width:calc(100% + 14px);justify-content:flex-start;margin:0 -7px 3px;font-weight:600}.side-ft .aws-st span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side-ft .aws-st.ok .i{color:var(--green)}.side-ft .aws-st.k .i,.side-ft .aws-st.k{color:var(--accent-t)}.side-ft .aws-st.w .i,.side-ft .aws-st.w{color:var(--orange)}
+dialog.wide{width:min(660px,calc(100vw - 24px))}
+.wbar{display:flex;gap:6px;align-items:center}
+.profs{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.prof{display:grid;grid-template-columns:minmax(0,1fr) 196px auto;column-gap:10px;align-items:center;padding:5px 10px 5px 4px}
+.prof+.prof{border-top:1px solid var(--line)}.prof.hl{background:var(--sel)}
+.pf-h{display:grid;grid-template-columns:14px minmax(0,1fr);column-gap:6px;row-gap:1px;align-items:center;min-width:0;padding:4px 6px;border:0;border-radius:6px;background:none;text-align:left}
+.pf-h:hover{background:var(--hover)}.pf-h.static:hover{background:none}.pf-h .chev{color:var(--text2);transition:transform .15s}.pf-h[aria-expanded=true] .chev{transform:rotate(90deg)}
+.pf-n{display:flex;align-items:center;gap:6px;min-width:0}.pf-n b{font:600 12.5px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pf-n b.plain{font:600 13px var(--font)}
+.pf-m{grid-column:2;font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptype{flex:none;font-size:10px;font-weight:600;line-height:16px;padding:0 5px;border-radius:4px;background:var(--fill2);color:var(--text2)}
+.pf-a{display:flex;gap:6px;justify-content:flex-end}
+.pf-si{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:4px 0 4px 26px;padding:6px 6px 6px 10px;border-radius:8px;background:var(--accent-f);font-size:12px}
+.pf-si.err{background:var(--red-f)}.pf-si.err>.i{color:var(--red)}.msg .pf-si{margin:2px 0 0}
+.pf-d{grid-column:1/-1;margin:2px 0 6px 26px;padding:8px 10px;border-radius:8px;background:var(--fill);font-size:12px}
+.pf-d dl{display:grid;grid-template-columns:118px minmax(0,1fr);gap:4px 10px;margin:0}.pf-d dt{color:var(--text2)}.pf-d dd{margin:0;min-width:0;overflow-wrap:anywhere}.pf-d p{margin:0}
+.pf-mg{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);color:var(--text2)}.pf-mg .i{color:var(--green)}
+.confirm{display:flex;gap:8px;margin-top:8px;padding:8px 10px;border-radius:8px;background:var(--red-f)}.confirm>.i{color:var(--red);margin-top:2px}.confirm p{margin:4px 0 0}
+.confirm .btns{display:flex;gap:6px;justify-content:flex-end;margin-top:8px}
+.srcs{display:grid;gap:3px;font-size:12px;color:var(--text2)}.srcs h4{margin:4px 0 2px;font-size:11px;color:var(--text3)}.srcs div{display:flex;gap:6px;align-items:center}.srcs .mono{color:var(--text);font-size:11.5px}.srcs p{margin:4px 0 0}
+.setup-hd{text-align:center;padding:6px 20px 2px}.setup-hd>.i{width:28px;height:28px;color:var(--text3)}.setup-hd h3{margin:6px 0 4px;font-size:15px}.setup-hd p{margin:0;color:var(--text2);font-size:12px}
+.setup{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.path{display:grid;gap:6px;align-content:start;justify-items:start;padding:14px;border:1px solid var(--line);border-radius:10px}
+.path.rec{border-color:color-mix(in srgb,var(--accent) 50%,transparent)}.path h4{display:flex;gap:6px;align-items:center;margin:0;font-size:13px}.path h4 .i{color:var(--accent-t)}.path p{margin:0;font-size:12px;color:var(--text2)}
+.keynote{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-radius:8px;background:var(--fill);font-size:12px;color:var(--text2)}.keynote>.i{margin-top:1px}.keynote p{margin:0}.keynote p+p{margin-top:4px}
+.cmd.cfg{padding-right:12px}
+.mock button:disabled{opacity:.4}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.spin{border-color:var(--accent)}}
+@media (max-width:860px){.win{grid-template-columns:1fr}.side{display:none}.menubar .mi{display:none}}
+@media (max-width:640px){
+  .row{grid-template-columns:58px minmax(0,1fr) 56px 44px 28px}.row .st{grid-column:2/-1;grid-row:2;margin-top:4px}.strip{grid-row:3}
+  .prof{grid-template-columns:minmax(0,1fr) auto}.prof .st{grid-column:1/-1;grid-row:2;padding-left:26px}.setup,.cols{grid-template-columns:1fr}.pf-d dl{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-db" viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/></symbol>
+  <symbol id="i-cache" viewBox="0 0 16 16"><path d="M8 2 2 5l6 3 6-3-6-3ZM2 8l6 3 6-3M2 11l6 3 6-3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 2 1.5 13.5h13L8 2Z"/><path d="M8 6.5v3M8 11.6v.1"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="m5.8 5.8 4.4 4.4m0-4.4-4.4 4.4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.8 3 3.6v4c0 3.2 2.2 5.6 5 6.6 2.8-1 5-3.4 5-6.6v-4L8 1.8Z"/><path d="M8 5.5v3M8 10.6v.1"/></symbol>
+  <symbol id="i-term" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><path d="m4.5 6 2 2-2 2M8.5 10.5h3"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 16 16"><g fill="currentColor" stroke="none"><circle cx="3.5" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="12.5" cy="8" r="1.3"/></g></symbol>
+  <symbol id="i-list" viewBox="0 0 16 16"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.1M2.5 8h.1M2.5 12h.1"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.5 3.5 9H8l-1 5.5L12.5 7H8l1-5.5Z"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 16 16"><path d="M6 2h4M6.5 2v4L3 13a1 1 0 0 0 .9 1.5h8.2A1 1 0 0 0 13 13L9.5 6V2"/></symbol>
+  <symbol id="i-server" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.1M4.5 11.25h.1"/></symbol>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3.5 3.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M5 3.5v9l7-4.5-7-4.5Z"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 16 16"><rect x="4" y="4" width="8" height="8" rx="1.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-7"/></symbol>
+  <symbol id="i-ring" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/></symbol>
+  <symbol id="i-tunnel" viewBox="0 0 16 16"><path d="M2 13.5V8a6 6 0 0 1 12 0v5.5M5.5 13.5V8.5a2.5 2.5 0 0 1 5 0v5M1 13.5h14"/></symbol>
+  <symbol id="i-loop" viewBox="0 0 16 16"><path d="M13 6a5.2 5.2 0 0 0-9.6-1.4M3 10a5.2 5.2 0 0 0 9.6 1.4"/><path d="M3 2.2v2.9h2.9M13 13.8v-2.9h-2.9"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="3.5" rx="1"/><path d="M2.5 6v6.5a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V6M6.5 9h3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></symbol>
+  <symbol id="i-logs" viewBox="0 0 16 16"><rect x="3" y="1.8" width="10" height="12.4" rx="1.5"/><path d="M5.8 5h4.4M5.8 8h4.4M5.8 11h2.6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 16 16"><path d="m6 3.5 4.5 4.5L6 12.5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 16 16"><path d="M4 1.8h5.5L12.5 5v9.2H4Z"/><path d="M9.5 1.8V5h3"/></symbol>
+  <!-- new for AWS sign-in -->
+  <symbol id="i-key" viewBox="0 0 16 16"><circle cx="4.6" cy="8" r="3"/><path d="M7.6 8h6.9M11.6 8v2.6M14 8v2"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c1.7 1.8 2.5 3.8 2.5 6S9.7 12.2 8 14C6.3 12.2 5.5 10.2 5.5 8S6.3 3.8 8 2Z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 16 16"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8Z"/><circle cx="8" cy="8" r="2"/></symbol>
+</defs></svg>
+
+<header class="menubar" aria-label="Menu bar (mock)">
+  <b>SSM Tunnels</b><span class="mi">File</span><span class="mi">Edit</span><span class="mi">View</span><span class="mi">Window</span><span class="mi">Help</span>
+  <span class="sp"></span><button class="tray" id="tray" data-a="tray" aria-haspopup="dialog" aria-expanded="false"></button>
+</header>
+
+<div class="win" id="win">
+  <aside class="side" aria-label="Sidebar">
+    <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+    <nav class="nav" id="side" aria-label="Filters"></nav>
+    <div class="side-ft" id="sideFt" data-root>
+      <div id="awsSt"></div>
+      <span><svg class="i"><use href="#i-check"/></svg>aws-cli 2.37.5</span>
+      <span><svg class="i"><use href="#i-check"/></svg>session-manager-plugin 1.2.553.0</span>
+      <span><i class="pulse"></i>Watching ps for Terminal sessions</span>
+      <div class="side-act"><button class="link" data-a="nav"><svg class="i"><use href="#i-archive"/></svg>Archived (0)</button><span class="sp"></span><button class="link" data-a="settings" title="Settings (⌘,)"><svg class="i"><use href="#i-gear"/></svg>Settings</button></div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="tb">
+      <div><h1>All Tunnels</h1><p class="sub" id="subtitle"></p></div>
+      <label class="search"><svg class="i"><use href="#i-search"/></svg><span class="vh">Search tunnels</span><input id="q" type="search" placeholder="Name, host, port…" spellcheck="false"></label>
+      <button class="btn" data-a="connectAll"><svg class="i"><use href="#i-play"/></svg>Connect All…</button>
+      <button class="btn" data-a="disconnectAll"><svg class="i"><use href="#i-stop"/></svg>Disconnect All</button>
+      <button class="btn ic pri" data-a="add" aria-label="New tunnel" title="New tunnel (⌘N)"><svg class="i"><use href="#i-plus"/></svg></button>
+    </div>
+    <div id="banner" data-root></div>
+    <div class="list" id="list" data-root></div>
+    <div class="toast" id="toast"></div>
+  </main>
+</div>
+
+<div class="pop" id="pop" role="dialog" aria-label="SSM Tunnels menu bar popover (preview)" data-root hidden></div>
+<div class="menu" id="menu" role="menu" aria-label="Tunnel actions" data-root hidden></div>
+
+<dialog id="dForm" aria-labelledby="fTitle">
+  <form id="form" novalidate autocomplete="off">
+    <div class="dlg-hd"><h2 id="fTitle">New Tunnel</h2><p class="sub" id="fSub"></p></div>
+    <div class="dlg-bd">
+      <div class="cols">
+        <div class="f"><label for="iName">Name</label><input id="iName" class="mono" spellcheck="false" placeholder="onyx-prod" aria-describedby="mName"><div class="msg err" id="mName"></div></div>
+        <div class="f"><span class="lbl" id="lEnv">Environment</span><div class="seg" id="envSeg" role="group" aria-labelledby="lEnv"><button type="button" data-env="prod">Production</button><button type="button" data-env="stg">Staging</button><button type="button" data-env="other">Other</button></div></div>
+      </div>
+      <div class="f"><label for="iDesc">Description</label><input id="iDesc" placeholder="Onyx DB"></div>
+      <div class="f"><label for="iProf">AWS profile</label><select id="iProf" aria-describedby="mProf"></select><div class="msg" id="mProf" data-root></div></div>
+      <div class="cols b">
+        <div class="f"><label for="iBastion">Bastion instance</label><select id="iBastion"><option value="i-0357e26df0d26b2ae">i-0357e26df0d26b2ae  ·  used by 6 tunnels</option><option value="i-0b0bdc12cc7c09e42">i-0b0bdc12cc7c09e42  ·  used by 1 tunnel</option><option value="other">Other instance…</option></select></div>
+        <div class="f"><label for="iRegion">Region</label><select id="iRegion"><option>us-west-2</option><option>eu-central-1</option><option>ap-northeast-1</option><option>us-east-1</option><option>eu-west-1</option></select></div>
+      </div>
+      <div class="f" id="fTarget"><label for="iTarget">Instance ID</label><input id="iTarget" class="mono" spellcheck="false" placeholder="i-0357e26df0d26b2ae"></div>
+      <div class="f"><label for="iHost">Remote host</label><input id="iHost" class="mono" spellcheck="false" placeholder="mydb.xxxx.us-west-2.rds.amazonaws.com"></div>
+      <div class="cols">
+        <div class="f"><label for="iPort">Remote port</label><input id="iPort" class="mono" inputmode="numeric"><div class="chips" id="presets" aria-label="Common ports"><button type="button" class="chip" data-p="5432">Postgres</button><button type="button" class="chip" data-p="6379">Redis</button><button type="button" class="chip" data-p="3306">MySQL</button><button type="button" class="chip" data-p="443">HTTPS</button></div></div>
+        <div class="f"><label for="iLocal">Local port (localhost)</label><div class="inrow"><input id="iLocal" class="mono" inputmode="numeric"><button type="button" class="btn sm" data-a="suggest">Suggest</button></div><div class="msg ok">✓ Free on this Mac</div></div>
+      </div>
+      <div class="autobox"><div><b id="lAuto">Auto-connect</b><p id="dAuto">Connects whenever SSM Tunnels opens, including at login, and reconnects if the session drops: 5 retries (2s to 32s), and right after wake.</p></div><button type="button" class="sw" role="switch" id="iAuto" aria-checked="false" aria-labelledby="lAuto" aria-describedby="dAuto"></button></div>
+      <div class="f"><span class="lbl">Command the app will run</span><div class="cmdwrap"><pre class="cmd" id="cmd"></pre><button type="button" class="btn sm" data-a="copyCmd">Copy</button></div></div>
+    </div>
+    <div class="dlg-ft"><span class="sp"></span><button type="button" class="btn" data-close>Cancel</button><button type="button" class="btn" data-a="saveGo">Save &amp; Connect</button><button type="submit" class="btn pri">Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="dSet" aria-labelledby="sTitle">
+  <div class="dlg-hd"><h2 id="sTitle">Settings</h2></div>
+  <div class="dlg-bd">
+    <div class="set"><div><h3 id="lLogin">Open at login</h3><p id="dLogin">When your Mac starts, SSM Tunnels opens in the menu bar (no window), connects the tunnels marked <b>Auto</b>, and keeps them up.</p></div><button class="sw" role="switch" aria-checked="true" data-a="sw" aria-labelledby="lLogin" aria-describedby="dLogin"></button></div>
+    <div class="set"><div><h3><label for="sArch">Auto-archive tunnels that keep failing</label></h3><p>Archived tunnels stop retrying and leave the list and menu bar. Days when every tunnel fails, or tunnels wait for AWS sign-in, don’t count.</p></div><select id="sArch"><option>After 7 days</option><option>Never</option></select>
+      <div><h3><label for="sPurge">Delete archived after</label></h3></div><select id="sPurge"><option>After 7 days</option><option>Never</option></select></div>
+    <div class="set"><div><h3 id="lQuit">Disconnect tunnels when quitting</h3><p id="dQuit">On: quitting stops the tunnels SSM Tunnels started. Sessions started in Terminal are never touched on quit.</p></div><button class="sw" role="switch" aria-checked="true" data-a="sw" aria-labelledby="lQuit" aria-describedby="dQuit"></button></div>
+    <div class="set"><div><h3 id="lAws">AWS</h3><p id="sAws"></p></div><button class="btn" data-a="awsFromSet" aria-describedby="sAws">Manage Profiles…</button></div>
+    <div class="set"><div class="full"><h3>Tools</h3></div><div class="full tool"><svg class="i"><use href="#i-check"/></svg>aws-cli <span class="mono">2.37.5</span></div><div class="full tool"><svg class="i"><use href="#i-check"/></svg>session-manager-plugin <span class="mono">1.2.553.0</span></div>
+      <p class="full">Tunnels are stored in <span class="mono">~/Library/Application Support/SSM Tunnels/connections.json</span></p></div>
+  </div>
+  <div class="dlg-ft"><span class="sp"></span><button class="btn pri" data-close>Done</button></div>
+</dialog>
+
+<dialog id="dAws" class="wide" aria-labelledby="wTitle">
+  <div class="dlg-hd"><h2 id="wTitle" tabindex="-1">AWS Profiles</h2><p class="sub" id="wSub"></p></div>
+  <div id="wBody" data-root></div>
+  <div class="dlg-ft" id="wFt"></div>
+</dialog>
+
+<div class="mock" role="region" aria-label="Mock controls, not part of the app">
+  <b>MOCK ONLY</b>
+  <span>Theme</span><button data-theme-set="auto" aria-pressed="true">Auto</button><button data-theme-set="light" aria-pressed="false">Light</button><button data-theme-set="dark" aria-pressed="false">Dark</button>
+  <span class="sep"></span><button data-m="expire">Expire a sign-in</button>
+  <span class="sep"></span><span title="What the browser does about 5 s after the code appears. Pick before signing in: open sheets block this bar.">Browser</span><button data-m="b" data-v="approve" aria-pressed="true">Approves</button><button data-m="b" data-v="deny" aria-pressed="false">Denies</button><button data-m="b" data-v="wait" aria-pressed="false">Waits</button>
+  <span class="sep"></span><button data-m="nocreds" aria-pressed="false">No AWS credentials</button><button data-m="pop" aria-pressed="false">Popover</button><button data-m="reset">Reset</button>
+  <small>Row ⋯ → Edit… for the profile picker</small>
+</div>
+<div id="live" class="vh" aria-live="polite"></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ic=(n,c="")=>`<svg class="i${c?" "+c:""}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const MIN=60e3, HR=36e5, now=()=>Date.now(), p2=n=>String(n).padStart(2,"0");
+const CFG="~/.aws/config", CRED="~/.aws/credentials", B1="i-0357e26df0d26b2ae", B2="i-0b0bdc12cc7c09e42";
+const REGIONS=["us-west-2","eu-central-1","ap-northeast-1","us-east-1","eu-west-1"], BREG={[B1]:"us-west-2",[B2]:"us-east-1"};
+const ENVS={prod:"Production",stg:"Staging",other:"Other"}, TYPE={sso:"SSO",keys:"Access keys"};
+const KIND={pg:["PostgreSQL","db"],redis:["Redis","cache"],https:["HTTPS","lock"]};
+// Account IDs and access key IDs are never shown in full outside the config preview the user is typing.
+const mask=a=>a?"••••"+String(a).slice(-4):"unknown", maskKey=k=>k&&k.length>8?`${k.slice(0,4)}…${k.slice(-4)}`:k||"";
+const dur=ms=>{const m=Math.max(0,Math.round(ms/MIN)); return m<60?`${m}m`:`${Math.floor(m/60)}h ${p2(m%60)}m`;};
+const ago=t=>{const m=Math.floor((now()-t)/MIN); return m<1?"just now":m<60?`${m}m ago`:`${Math.floor(m/60)}h ago`;};
+const regOpts=v=>REGIONS.map(r=>`<option${r===v?" selected":""}>${r}</option>`).join("");
+const pidN=()=>40000+Math.floor(Math.random()*20000);
+
+/* ---------- demo data (fake: example accounts, example key IDs from AWS docs, no real organizations) ---------- */
+function seed(){
+  const N=now(), T=(name,env,k,local,host,port,desc,profile,st,x={})=>({name,env,k,local,host,port,desc,profile,st,target:B1,region:"us-west-2",auto:st!=="idle",...x});
+  return {profiles:[
+    {name:"default",type:"keys",region:"us-west-2",acct:"123456789012",who:"ci-tunnels",keyId:"AKIAIOSFODNN7EXAMPLE",st:"ok",tested:N-40*MIN},
+    {name:"dev-sso",type:"sso",region:"us-west-2",acct:"210987654321",role:"DeveloperAccess",who:"DeveloperAccess",session:"dev",url:"https://d-90670000aa.awsapps.com/start",ssoRegion:"us-west-2",st:"ok",exp:N+7.4*HR},
+    {name:"prod-sso",type:"sso",region:"us-west-2",acct:"345678906789",role:"TunnelOperator",who:"TunnelOperator",session:"prod",url:"https://d-90670000bb.awsapps.com/start",ssoRegion:"us-west-2",st:"expired",at:N-2*HR,
+      err:"Error loading SSO Token: Token for prod-sso does not exist"},
+    {name:"sandbox",type:"sso",region:"us-east-1",acct:"111122223333",role:"SandboxAdmin",who:"SandboxAdmin",session:"sandbox",url:"https://d-90670000cc.awsapps.com/start",ssoRegion:"us-east-1",st:"none",app:true},
+    {name:"legacy-keys",type:"keys",region:"eu-west-1",keyId:"AKIAI44QH8DHBEXAMPLE",st:"error",code:"InvalidClientTokenId",short:"Security token is invalid",app:true,tested:N-3*MIN,
+      err:"An error occurred (InvalidClientTokenId) when calling the GetCallerIdentity operation: The security token included in the request is invalid."},
+  ],tunnels:[
+    T("onyx-prod","prod","pg",15002,"onyx-prod.cluster-c1example.us-west-2.rds.amazonaws.com",5432,"Onyx DB","prod-sso","waiting"),
+    T("zephyr-prod","prod","pg",15001,"zephyr-prod.cluster-c1example.us-west-2.rds.amazonaws.com",5432,"Reporting replica","prod-sso","waiting"),
+    T("glacier-prod-redis","prod","redis",16001,"glacier-prod-redis.c1example.cache.amazonaws.com",6379,"Sessions cache","prod-sso","waiting"),
+    T("onyx-stg","stg","pg",15004,"onyx-stg.cluster-c2example.us-west-2.rds.amazonaws.com",5432,"Onyx DB","dev-sso","active",{since:N-37*MIN,pid:50331}),
+    T("glacier-stg-redis","stg","redis",16004,"glacier-stg-redis.c2example.cache.amazonaws.com",6379,"Sessions cache","dev-sso","idle"),
+    T("sandbox-db","other","pg",15010,"sandbox-db.c3example.us-east-1.rds.amazonaws.com",5432,"Scratch DB","sandbox","idle",{target:B2,region:"us-east-1"}),
+    T("kelp-1","other","https",8443,"tools.internal.example",443,"Internal tools","","active",{since:N-48*MIN,pid:49102,auto:false}),
+  ]};
+}
+
+/* ---------- state ---------- */
+let S=seed(), stash=null, si=null, siT=null, browser="approve", popOpen=matchMedia("(min-width:1400px)").matches, menuFrom=null, opener=null, openerSel=null, query="";
+const W={v:"list",open:new Set(["prod-sso"]),hl:null,rm:null,ed:null,tried:false};
+let edT=null, envVal="other", autoVal=false;
+const prof=n=>S.profiles.find(p=>p.name===(n||"default"));
+const pn=t=>t.profile||"default";
+const usersOf=n=>S.tunnels.filter(t=>pn(t)===n);
+// One `aws sso login` refreshes the token for the whole sso-session, so every profile sharing it flips together.
+const mates=p=>p.type==="sso"?S.profiles.filter(x=>x.type==="sso"&&x.session===p.session):[p];
+const waiting=()=>S.tunnels.filter(t=>t.st==="waiting");
+const busy=t=>["active","connecting","waiting"].includes(t.st);
+
+/* ---------- feedback ---------- */
+let tt;
+function toast(msg,act){ const el=$("#toast"); el.innerHTML=`<span>${esc(msg)}</span>`+(act?`<button type="button">${esc(act[0])}</button>`:"");
+  if(act) el.querySelector("button").onclick=()=>{ el.classList.remove("show"); act[1](); };
+  el.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove("show"),act?6000:2800); announce(msg); }
+function announce(m){ const l=$("#live"); l.textContent=""; setTimeout(()=>l.textContent=m,40); }
+async function copy(text,btn){ try{ await navigator.clipboard.writeText(text); }catch(_){ /* file:// may reject; the app uses Electron's clipboard */ }
+  if(btn){ const o=btn.textContent; btn.textContent="Copied"; announce("Copied"); setTimeout(()=>{ if(btn.isConnected) btn.textContent=o; },1200); } }
+const spell=c=>c.split("").join(" ");
+
+/* ---------- profile status ---------- */
+function stInfo(p){
+  if(si&&si.p===p.name&&si.phase!=="failed") return {c:"busy",spin:1,l1:"Signing in…",l2:"Waiting for your browser"};
+  if(p.testing) return {c:"busy",spin:1,l1:"Testing…",l2:"aws sts get-caller-identity"};
+  return {ok:{c:"ok",i:"check",l1:`Signed in as ${p.who}`,l2:`account ${mask(p.acct)}${p.type==="sso"&&p.exp?` · ${dur(p.exp-now())} left`:""}`},
+    expired:{c:"wait",i:"key",l1:"Sign-in expired",l2:p.at?ago(p.at):""},
+    none:{c:"note",i:"ring",l1:"Not signed in",l2:"Sign in to use it"},
+    error:{c:"err",i:"x",l1:`Error: ${p.code}`,l2:p.short||(p.tested?`tested ${ago(p.tested)}`:"")}}[p.st];
+}
+const stCell=s=>`<div class="st ${s.c}" title="${esc(s.l1+(s.l2?" · "+s.l2:""))}"><div class="l1">${s.spin?'<span class="spin" aria-hidden="true"></span>':ic(s.i)}<span class="tx">${esc(s.l1)}</span></div><div class="l2">${esc(s.l2)}</div></div>`;
+const codeHTML=()=>`<span class="code" aria-hidden="true">${si.code}</span><span class="vh">code ${spell(si.code)}</span>`;
+function siInline(n){ // the same sign-in progress block in the AWS sheet row and the tunnel form
+  if(!si||si.p!==n) return "";
+  if(si.phase==="failed") return `<div class="pf-si err">${ic("x")}<span>${esc(si.err)}</span><span class="sp"></span><button type="button" class="btn sm" data-a="siDismiss">Dismiss</button><button type="button" class="btn sm pri" data-a="signin" data-p="${esc(n)}">Try Again</button></div>`;
+  return `<div class="pf-si"><span class="spin" aria-hidden="true"></span><span>${si.phase==="opening"?"Opening your browser… code":"Confirm this code in your browser"}</span>${codeHTML()}<button type="button" class="btn sm" data-a="copyCode">Copy Code</button><span class="sp"></span><button type="button" class="btn sm" data-a="siCancel">Cancel</button></div>`;
+}
+
+/* ---------- sign-in flow: idle → opening → waiting (code) → success | failed ---------- */
+function mkCode(){ const A="BCDFGHJKLMNPQRSTVWXZ", r=()=>Array.from({length:4},()=>A[Math.floor(Math.random()*A.length)]).join(""); return r()+"-"+r(); }
+function signIn(n){
+  const p=prof(n); if(!p||p.type!=="sso") return;
+  clearTimeout(siT); si={p:n,phase:"opening",code:mkCode()}; render();
+  announce(`Opening your browser to sign in to ${n}. Code ${spell(si.code)}.`);
+  siT=setTimeout(()=>{ if(!si||si.p!==n) return; si.phase="waiting"; render(); announce(`Confirm code ${spell(si.code)} in your browser.`);
+    if(browser!=="wait") siT=setTimeout(resolveBrowser,5000); },1400);
+}
+const resolveBrowser=()=>browser==="deny"?deny():approve();
+function approve(){
+  if(!si||si.phase==="failed") return; const n=si.p, p=prof(n); si=null; clearTimeout(siT); if(!p) return render();
+  const ms=mates(p), names=new Set(ms.map(x=>x.name));
+  ms.forEach(x=>{ x.st="ok"; x.exp=now()+8*HR; x.at=null; x.err=null; });
+  const ws=S.tunnels.filter(t=>t.st==="waiting"&&names.has(pn(t))); ws.forEach(t=>t.st="connecting");
+  render(); toast(ws.length?`Signed in to ${n} · reconnecting ${ws.length} tunnel${ws.length>1?"s":""}`:`Signed in to ${n}`);
+  setTimeout(()=>{ ws.forEach(t=>{ if(t.st==="connecting"){ t.st="active"; t.since=now(); t.pid=pidN(); } }); render(); if(ws.length) announce(`${ws.length} tunnel${ws.length>1?"s":""} reconnected`); },1600);
+}
+function deny(){ if(!si||si.phase==="failed") return; clearTimeout(siT); si.phase="failed"; si.err="Access was denied in the browser. Tunnels keep waiting."; render(); announce(`Sign-in to ${si.p} didn’t complete. ${si.err}`); }
+function cancelSi(quiet){ if(!si) return; const n=si.p; si=null; clearTimeout(siT); render(); if(!quiet) announce(`Sign-in to ${n} cancelled`); }
+function test(n){ const p=prof(n); if(!p||p.testing) return; p.testing=true; render();
+  setTimeout(()=>{ p.testing=false; p.tested=now(); render(); const s=stInfo(p); announce(`${n}: ${s.l1}${s.l2?", "+s.l2:""}`); },1100); }
+function expire(){
+  const p=S.profiles.find(x=>x.type==="sso"&&x.st==="ok"); if(!p) return toast("Mock: no signed-in SSO profile left to expire");
+  const names=new Set(mates(p).map(x=>x.name));
+  mates(p).forEach(x=>{ x.st="expired"; x.at=now(); x.err="The SSO session associated with this profile has expired or is otherwise invalid. To refresh this SSO session run aws sso login with the corresponding profile."; });
+  const hit=S.tunnels.filter(t=>names.has(pn(t))&&(t.st==="active"||t.st==="connecting")); hit.forEach(t=>t.st="waiting");
+  render(); announce(`AWS sign-in expired for ${p.name}. ${hit.length} tunnel${hit.length===1?"":"s"} waiting.`);
+}
+
+/* ---------- main window ---------- */
+function toggle(t){
+  if(busy(t)){ const w=t.st==="waiting"; t.st="idle"; render(); return announce(w?`Stopped waiting: ${t.name}`:`Disconnected ${t.name}`); }
+  const p=prof(t.profile); t.err=null;
+  if(!p) t.st="failed", t.err=t.profile?`The config profile (${t.profile}) could not be found`:`Unable to locate credentials. You can configure credentials by running "aws configure".`;
+  else if(p.st==="error") t.st="failed", t.err=p.err;
+  else if(p.type==="sso"&&p.st!=="ok"){ t.st="waiting"; render(); return announce(`${t.name} is waiting for AWS sign-in (${p.name})`); }
+  else { t.st="connecting"; setTimeout(()=>{ if(t.st==="connecting"){ t.st="active"; t.since=now(); t.pid=pidN(); render(); } },1100); }
+  render();
+}
+function stHTML(t){
+  if(t.st==="active") return `<div class="st ok"><div class="l1"><span class="dot"></span>Connected · ${dur(now()-t.since)}</div><div class="l2">PID ${t.pid}</div></div>`;
+  if(t.st==="connecting") return '<div class="st busy"><div class="l1"><span class="spin" aria-hidden="true"></span>Connecting…</div><div class="l2">Starting SSM session</div></div>';
+  if(t.st==="waiting") return `<div class="st wait"><div class="l1">${ic("key")}Waiting for sign-in</div><div class="l2">${esc(pn(t))} · retries paused</div></div>`;
+  if(t.st==="failed") return `<div class="st err"><div class="l1">${ic("x")}Failed</div><div class="l2">just now</div></div>`;
+  return '<div class="st"></div>';
+}
+function rowHTML(t){
+  const [kl,ki]=KIND[t.k], prod=t.env==="prod", id=esc(t.name), miss=t.profile&&!prof(t.profile);
+  const chip=t.profile?`<span class="pchip${miss?" miss":""}" title="${miss?`AWS profile ${esc(t.profile)} not found`:`AWS profile ${esc(t.profile)}`}">${ic("key")}${esc(t.profile)}<span class="vh">${miss?" (not found)":""}</span></span>`:"";
+  const sw=t.st==="active"?"true":busy(t)?"mixed":"false";
+  const strip=t.st==="failed"?`<div class="strip err">${ic("x")}<span><span class="eline">${esc(t.err)}</span>${/could not be found|Unable to locate/.test(t.err)?"<small>Pick another AWS profile for this tunnel, or set up AWS access.</small>":""}</span><button class="btn sm" data-a="edit-t" data-id="${id}">Edit…</button></div>`:"";
+  return `<li class="row ${t.st}${prod?" prod":""}">
+    <button class="port" data-a="copyPort" data-id="${id}" aria-label="Copy localhost:${t.local}" title="Copy localhost:${t.local}">:${t.local}</button>
+    <div class="mn"><div class="nm"><b>${id}</b>${prod?'<span class="badge prod" title="Production — live data">PROD</span>':""}<span class="kind">${ic(ki)}${kl}</span>${chip}</div>
+      <div class="sub2">${esc(t.desc)} · <span class="mono">${esc(t.host)}:${t.port}</span></div></div>
+    ${stHTML(t)}
+    <button class="auto" aria-pressed="${!!t.auto}" data-a="auto" data-id="${id}" aria-label="Auto-connect ${id}">${ic("loop")}Auto</button>
+    <button class="sw" role="switch" aria-checked="${sw}" data-a="toggle" data-id="${id}" aria-label="${id} tunnel" title="${t.st==="waiting"?"Stop waiting":busy(t)?"Disconnect":"Connect"} (Space)"></button>
+    <button class="more" data-a="more" data-id="${id}" aria-haspopup="menu" aria-label="More actions for ${id}">${ic("dots")}</button>${strip}</li>`;
+}
+function listHTML(){
+  const v=S.tunnels.filter(t=>!query||`${t.name} ${t.host} ${t.local}`.toLowerCase().includes(query.toLowerCase()));
+  if(!v.length) return `<div class="empty">${ic("search")}No tunnels match “${esc(query)}”.</div>`;
+  return Object.keys(ENVS).map(e=>{ const g=v.filter(t=>t.env===e); if(!g.length) return "";
+    const n=g.filter(t=>t.st==="active").length, w=g.filter(t=>t.st==="waiting").length;
+    return `<section aria-label="${ENVS[e]}"><div class="sec ${e}"><h2>${e==="prod"?ic("shield"):""}${ENVS[e]}</h2><span class="meta">${g.length} · ${n} connected${w?` · ${w} waiting for sign-in`:""}${e==="prod"?" · live data":""}</span></div><ul class="rows">${g.map(rowHTML).join("")}</ul></section>`; }).join("");
+}
+function bannerHTML(){
+  if(!S.profiles.length) return `<div class="banner aws">${ic("key")}<span><b>No AWS credentials found on this Mac.</b> Tunnels can’t connect until you set up AWS access.</span><span class="sp"></span><button class="btn sm pri" data-a="aws">Set Up AWS Access…</button></div>`;
+  if(si){ const n=esc(si.p);
+    if(si.phase==="failed") return `<div class="banner aws err">${ic("x")}<span><b>Couldn’t sign in to ${n}.</b> ${esc(si.err)}</span><span class="sp"></span><button class="btn sm" data-a="details" data-p="${n}">Details</button><button class="btn sm ic" data-a="siDismiss" aria-label="Dismiss" title="Dismiss">${ic("x")}</button><button class="btn sm pri" data-a="signin" data-p="${n}">Try Again</button></div>`;
+    return `<div class="banner aws"><span class="spin" aria-hidden="true"></span><span>${si.phase==="opening"?`<b>Opening your browser…</b> confirm code`:`<b>Signing in to ${n}.</b> In your browser, confirm code`}</span>${codeHTML()}<button class="btn sm" data-a="copyCode">Copy Code</button><span class="sp"></span><button class="btn sm" data-a="siCancel">Cancel</button></div>`;
+  }
+  const ex=S.profiles.filter(p=>p.st!=="ok"&&waiting().some(t=>pn(t)===p.name)); if(!ex.length) return "";
+  const p=ex[0], n=waiting().length, id=esc(p.name);
+  return `<div class="banner aws">${ic("key")}<span><b>${p.st==="expired"?`AWS sign-in expired for profile ${id}`:`Not signed in to AWS profile ${id}`}</b>${ex.length>1?` and ${ex.length-1} more`:""} · ${n} tunnel${n>1?"s":""} waiting</span><span class="sp"></span><button class="btn sm" data-a="details" data-p="${id}">Details</button>${p.type==="sso"?`<button class="btn sm pri" data-a="signin" data-p="${id}">Sign In</button>`:""}</div>`;
+}
+function prodBanner(){ const pl=S.tunnels.filter(t=>t.env==="prod"&&t.st==="active"); if(!pl.length) return "";
+  return `<div class="banner">${ic("shield")}<span><b>${pl.length} production tunnel${pl.length>1?"s":""} live</b> — ${pl.map(t=>esc(t.name)).join(", ")}</span><span class="sp"></span><button class="btn sm" data-a="nav">Show</button><button class="btn sm" data-a="discProd">Disconnect Production</button></div>`; }
+function sideHTML(){
+  const c=f=>S.tunnels.filter(f).length, it=(icon,label,n,cls="",cur)=>`<button data-a="nav" class="${cls}"${cur?' aria-current="page"':""}>${ic(icon)}${label}<span class="n">${n||""}</span></button>`;
+  return `<h3>Tunnels</h3>${it("list","All Tunnels",S.tunnels.length,"",1)}${it("bolt","Connected",c(t=>t.st==="active"),"ok")}${it("warn","Needs Attention",c(t=>t.st==="waiting"||t.st==="failed"),"attn")}
+    <h3>Environment</h3>${it("shield","Production",c(t=>t.env==="prod"),"prod")}${it("flask","Staging",c(t=>t.env==="stg"))}${it("ring","Other",c(t=>t.env==="other"))}
+    <h3>Bastions</h3>${it("server",`<span class="lb"><span class="mono">i-0123…cdef0</span><small>us-west-2</small></span>`,c(t=>t.target===B1),"two")}${it("server",`<span class="lb"><span class="mono">i-0fed…43210</span><small>us-east-1</small></span>`,c(t=>t.target===B2),"two")}
+    <h3>Activity</h3>${it("logs","Logs",0)}`;
+}
+function awsStHTML(){ // sidebar footer line, next to the aws-cli tool status: always one click from the AWS sheet
+  const ps=S.profiles, w=waiting(), er=ps.filter(p=>p.st==="error"); let i="check", c="ok", t=`AWS: ${ps.length} profile${ps.length===1?"":"s"}`;
+  if(!ps.length){ i="warn"; c="w"; t="AWS: not set up"; }
+  else if(si&&si.phase!=="failed"){ i="key"; c="k"; t=`AWS: signing in to ${si.p}…`; }
+  else if(w.length){ const p=prof(pn(w[0])); i="key"; c="k"; t=p&&p.st==="expired"?`AWS: ${p.name} sign-in expired`:`AWS: ${w.length} waiting for sign-in`; }
+  else if(er.length){ i="warn"; c="w"; t+=` · ${er.length} error${er.length>1?"s":""}`; }
+  return `<button class="link aws-st ${c}" data-a="aws" title="AWS profiles and sign-in">${ic(i)}<span>${esc(t)}</span></button>`;
+}
+function popHTML(){
+  const S2=S.tunnels, hot=S2.filter(t=>t.st!=="idle"), cold=S2.filter(t=>t.st==="idle"), n=S2.filter(t=>t.st==="active").length, w=waiting();
+  let aws="";
+  if(!S.profiles.length) aws=`<div class="pop-warn k">${ic("key")}<span class="sp">No AWS credentials</span><button class="btn sm" data-a="aws">Set Up…</button></div>`;
+  else if(si&&si.phase==="failed") aws=`<div class="pop-warn e">${ic("x")}<span class="sp"><b>${esc(si.p)}</b> sign-in didn’t complete</span><button class="btn sm" data-a="signin" data-p="${esc(si.p)}">Try Again</button></div>`;
+  else if(si) aws=`<div class="pop-warn k"><span class="spin" aria-hidden="true"></span><span class="sp">Confirm ${codeHTML()} in browser</span><button class="btn sm" data-a="siCancel">Cancel</button></div>`;
+  else if(w.length){ const p=prof(pn(w[0])); if(p&&p.type==="sso") aws=`<div class="pop-warn k">${ic("key")}<span class="sp"><b>${esc(p.name)}</b> sign-in ${p.st==="expired"?"expired":"needed"} · ${w.length} waiting</span><button class="btn sm" data-a="signin" data-p="${esc(p.name)}">Sign In</button></div>`; }
+  const sub=t=>t.st==="active"?`${dur(now()-t.since)} · PID ${t.pid}`:t.st==="connecting"?"Connecting…":t.st==="waiting"?`Waiting for sign-in · ${esc(pn(t))}`:t.st==="failed"?esc(t.err):esc(t.desc);
+  const r=t=>`<div class="prow ${t.st}"><span class="dot" aria-hidden="true"></span><span style="min-width:0"><span class="pt"><b>${esc(t.name)}</b>${t.env==="prod"?'<span class="badge prod">PROD</span>':""}</span><small>${sub(t)}</small></span><span class="port-s">:${t.local}</span><button class="sw" role="switch" aria-checked="${t.st==="active"?"true":busy(t)?"mixed":"false"}" data-a="toggle" data-id="${esc(t.name)}" aria-label="${esc(t.name)} tunnel"></button></div>`;
+  return `<div class="pop-hd"><b>SSM Tunnels</b><span class="sub">${n} connected</span></div>${aws}
+    <div class="pop-list">${hot.length?`<h4>Active</h4>${hot.map(r).join("")}`:""}${cold.length?`<h4>Saved</h4>${cold.map(r).join("")}`:""}</div>
+    <div class="pop-ft"><button class="btn sm" data-a="disconnectAll">Disconnect All</button><span class="sp"></span><button class="btn sm ic" data-a="settings" aria-label="Settings" title="Settings">${ic("gear")}</button><button class="btn sm" data-a="nav">Open SSM Tunnels</button></div>`;
+}
+const selOf=a=>["a","p","id"].filter(k=>a.dataset[k]!=null).map(k=>`[data-${k}="${CSS.escape(a.dataset[k])}"]`).join("");
+function render(){
+  const a=document.activeElement, root=a&&a.closest&&!a.closest("dialog")?a.closest("[data-root]"):null, keep=root&&a.dataset.a?selOf(a):null;
+  const nA=S.tunnels.filter(t=>t.st==="active").length, nW=waiting().length, nF=S.tunnels.filter(t=>t.st==="failed").length;
+  $("#subtitle").textContent=[`${nA} connected`,nW&&`${nW} waiting for sign-in`,nF&&`${nF} failed`,`${S.tunnels.length} saved`].filter(Boolean).join(" · ");
+  $("#banner").innerHTML=bannerHTML()+prodBanner(); $("#list").innerHTML=listHTML(); $("#side").innerHTML=sideHTML(); $("#awsSt").innerHTML=awsStHTML();
+  $("#pop").innerHTML=popHTML(); $("#pop").hidden=!popOpen;
+  const tray=$("#tray"); tray.innerHTML=`${ic("tunnel")}<span>${nA||""}</span>${nF?'<i class="tdot"></i>':nW?'<i class="tdot k"></i>':""}`;
+  tray.setAttribute("aria-label",`SSM Tunnels: ${nA} connected${nW?`, ${nW} waiting for AWS sign-in`:""}${nF?`, ${nF} failed`:""}`); tray.setAttribute("aria-expanded",popOpen);
+  $('[data-m="pop"]').setAttribute("aria-pressed",popOpen); $('[data-m="nocreds"]').setAttribute("aria-pressed",!!stash);
+  if($("#dAws").open&&W.v==="list") drawAws(); if($("#dForm").open) profSync(); if($("#dSet").open) drawSet();
+  if(root){ const el=keep&&$(keep,root); if(el) el.focus({preventScroll:true}); else if(!root.contains(document.activeElement)) ($("button",root)||$("#list button")||$("#q")).focus({preventScroll:true}); }
+}
+
+/* ---------- AWS sheet: list ⇄ add SSO ⇄ add keys, one sheet (no stacked modals); Esc in a form goes back ---------- */
+function profHTML(p){
+  const o=W.open.has(p.name), s=stInfo(p), u=usersOf(p.name), id=esc(p.name), sso=p.type==="sso", mine=si&&si.p===p.name;
+  const acts=`<button class="btn sm" data-a="test" data-p="${id}"${p.testing||(mine&&si.phase!=="failed")?" disabled":""}>Test</button>`+(sso&&!mine?`<button class="btn sm${p.st!=="ok"?" pri":""}" data-a="signin" data-p="${id}">Sign In</button>`:"");
+  return `<li class="prof${W.hl===p.name?" hl":""}">
+    <button class="pf-h" data-a="pexp" data-p="${id}" aria-expanded="${o}"${o?` aria-controls="pd-${id}"`:""} aria-label="${esc(`${p.name}, ${TYPE[p.type]}${p.name==="default"?", default profile":""}, ${s.l1}`)}">${ic("chev","chev")}
+      <span class="pf-n"><b>${id}</b><span class="ptype">${TYPE[p.type]}</span>${p.name==="default"?'<span class="ptype">Default</span>':""}</span>
+      <span class="pf-m">${esc(p.region||"no region")} · ${u.length?`used by ${u.length} tunnel${u.length>1?"s":""}`:"no tunnels"}</span></button>
+    ${stCell(s)}<div class="pf-a">${acts}</div>${siInline(p.name)}${o?detHTML(p,u):""}</li>`;
+}
+function detHTML(p,u){
+  const id=esc(p.name), sso=p.type==="sso", R=[];
+  R.push(["Source",`<span class="mono">${sso?`${CFG} [${p.name==="default"?"default":"profile "+id}] + [sso-session ${esc(p.session)}]`:`${CRED} [${id}]`}</span>`]);
+  if(sso){ R.push(["Start URL",`<span class="mono">${esc(p.url)}</span> · ${esc(p.ssoRegion)}`]); R.push(["Account · role",`${mask(p.acct)} · ${esc(p.role)}`]); }
+  else R.push(["Access key",`<span class="mono">${maskKey(p.keyId)}</span> · secret stored, never shown`]);
+  R.push(["Tunnels",u.length?`<span class="tags">${u.map(t=>`<span class="tag${t.env==="prod"?" prod":""}">${esc(t.name)} <span class="mono">:${t.local}</span></span>`).join("")}</span>`:"None"]);
+  if(sso) R.push(["Sign-in runs",`<span class="mono">aws sso login --profile ${id}</span>`]);
+  if(p.err&&p.st!=="ok") R.push(["Last error",`<span class="eline">${esc(p.err)}</span>${p.st==="error"?"The key was deleted or deactivated in IAM. Replace it, or remove this profile.":""}`]);
+  R.push(["Last test",p.tested?ago(p.tested):"not yet"]);
+  const mg=p.app?`<div class="pf-mg">${ic("check")}<span>Added in SSM Tunnels</span><span class="sp"></span><button class="btn sm" data-a="edit" data-p="${id}">${sso?"Edit…":"Replace Keys…"}</button><button class="btn sm red" data-a="rm" data-p="${id}">Remove…</button></div>`
+    :`<div class="pf-mg"><span>Defined outside SSM Tunnels. Edit <span class="mono">${sso||p.name==="default"?CFG:CRED}</span> to change it.</span></div>`;
+  return `<div class="pf-d" id="pd-${id}"><dl>${R.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>${mg}${W.rm===p.name?rmHTML(p,u):""}</div>`;
+}
+function rmHTML(p,u){ // removal never falls back to the default profile: that could silently be a different account
+  const keep=mates(p).length>1, id=esc(p.name), they=u.length>1?"They":"It";
+  const what=p.type==="keys"?`Deletes [${id}] from ${CRED} and [profile ${id}] from ${CFG}.`:`Deletes [profile ${id}]${keep?"":` and [sso-session ${esc(p.session)}]`} from ${CFG}.`;
+  return `<div class="confirm" role="group" aria-labelledby="rmT">${ic("warn")}<div><b id="rmT">Remove ${id}?</b> ${what}
+    ${u.length?`<p><b>${u.length} tunnel${u.length>1?"s use":" uses"} it: ${u.map(t=>esc(t.name)).join(", ")}.</b> ${they} won’t switch to the default profile, which may be a different account. ${they} ${u.length>1?"show":"shows"} “profile not found” until you pick another.</p>`:"<p>No tunnels use it.</p>"}
+    <div class="btns"><button class="btn sm" data-a="rmNo" data-p="${id}">Cancel</button><button class="btn sm red" data-a="rmYes" data-p="${id}">Remove Profile</button></div></div></div>`;
+}
+const envRow=()=>`<li class="prof"><div class="pf-h static"><span></span><span class="pf-n"><b class="plain">Environment variables</b><span class="ptype">Environment</span></span><span class="pf-m">AWS_PROFILE / AWS_ACCESS_KEY_ID · none seen</span></div>
+  ${stCell({c:"note",i:"ring",l1:"Not configured",l2:"only seen when started from a terminal"})}<div class="pf-a"></div></li>`;
+function setupHTML(){ return `<div class="setup-hd">${ic("key")}<h3>Set up AWS access</h3><p>Tunnels run <span class="mono">aws ssm start-session</span>, which needs AWS credentials. None were found in ${CFG}, ${CRED} or the environment.</p></div>
+  <div class="setup"><div class="path rec"><h4>${ic("globe")}Sign in with SSO <span class="ptype">Recommended</span></h4><p>Sign in through your organization’s AWS access portal in the browser. Nothing secret is saved; when the session ends after some hours, sign in again with one click.</p><p class="sub">You’ll need the start URL, account ID and role name.</p><button class="btn pri" data-a="addSso">Set Up SSO…</button></div>
+  <div class="path"><h4>${ic("key")}Use access keys</h4><p>An access key ID and secret for an IAM user, saved in ${CRED} and readable only by you. Keys don’t expire, so they need more care.</p><p class="sub">You’ll need both values from IAM.</p><button class="btn" data-a="addKeys">Add Access Keys…</button></div></div>`; }
+function srcHTML(){
+  const k=S.profiles.filter(p=>p.type==="keys").length, ss=new Set(S.profiles.filter(p=>p.session).map(p=>p.session)).size;
+  return `<div class="srcs" role="group" aria-labelledby="srcH"><h4 id="srcH">Sources</h4>
+    <div>${ic("doc")}<span class="mono">${CFG}</span><span>· ${S.profiles.length?`${S.profiles.length} profiles, ${ss} sso-session${ss===1?"":"s"}`:"not found"}</span></div>
+    <div>${ic("lock")}<span class="mono">${CRED}</span><span>· ${k?`${k} key pair${k>1?"s":""} · readable only by you (600)`:"not found"}</span></div>
+    <div>${ic("term")}<span>Environment variables · none seen. The app doesn’t read <span class="mono">~/.zshrc</span>, so set profiles in the files above.</span></div>
+    <p>Re-read whenever these files change, including edits made in a terminal. Secrets are never shown or logged.</p></div>`;
+}
+function ssoFormHTML(e){ const v=k=>esc(e?e[k]:"");
+  return `<form id="fSso" class="dlg-bd" novalidate autocomplete="off">
+  <div class="cols"><div class="f"><label for="sName">Profile name</label><input id="sName" class="mono" spellcheck="false" placeholder="team-prod" value="${v("name")}" aria-describedby="mSName"><div class="msg" id="mSName"></div></div>
+    <div class="f"><label for="sReg">Default region</label><select id="sReg">${regOpts(e?e.region:"us-west-2")}</select></div></div>
+  <div class="f"><label for="sUrl">SSO start URL</label><input id="sUrl" class="mono" spellcheck="false" placeholder="https://d-xxxxxxxxxx.awsapps.com/start" value="${v("url")}" aria-describedby="mSUrl"><div class="msg" id="mSUrl"></div></div>
+  <div class="cols"><div class="f"><label for="sSReg">SSO region</label><select id="sSReg">${regOpts(e?e.ssoRegion:"us-east-1")}</select></div>
+    <div class="f"><label for="sAcct">Account ID</label><input id="sAcct" class="mono" inputmode="numeric" spellcheck="false" placeholder="123456789012" value="${v("acct")}" aria-describedby="mSAcct"><div class="msg" id="mSAcct"></div></div></div>
+  <div class="f"><label for="sRole">Role name</label><input id="sRole" class="mono" spellcheck="false" placeholder="DeveloperAccess" value="${v("role")}" aria-describedby="mSRole"><div class="msg" id="mSRole"></div></div>
+  <div class="f"><span class="lbl" id="lSPrev">Exactly what will be written to ${CFG} (no secrets)</span><pre class="cmd cfg" id="sPrev" aria-labelledby="lSPrev"></pre></div></form>`;
+}
+function keysFormHTML(e){
+  return `<form id="fKeys" class="dlg-bd" novalidate autocomplete="off">
+  <div class="cols"><div class="f"><label for="kName">Profile name</label><input id="kName" class="mono" spellcheck="false" placeholder="ci-user" value="${esc(e?e.name:"")}" aria-describedby="mKName"><div class="msg" id="mKName"></div></div>
+    <div class="f"><label for="kReg">Default region</label><select id="kReg">${regOpts(e?e.region:"us-west-2")}</select></div></div>
+  <div class="f"><label for="kId">Access key ID</label><input id="kId" class="mono" spellcheck="false" autocomplete="off" placeholder="${e?`Current ${esc(maskKey(e.keyId))} · leave empty to keep`:"AKIA…"}" aria-describedby="mKId"><div class="msg" id="mKId"></div></div>
+  <div class="f"><label for="kSec">Secret access key</label><div class="inrow"><input id="kSec" type="password" class="mono" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${e?"Leave empty to keep the current secret":"40 characters"}" aria-describedby="mKSec kNote"><button type="button" class="btn sm" data-a="reveal" aria-pressed="false" aria-controls="kSec">${ic("eye")}<span>Show</span></button></div><div class="msg" id="mKSec"></div></div>
+  <div class="keynote" id="kNote">${ic("lock")}<div><p>Saved in <span class="mono">${CRED}</span>, readable only by you (permissions 600). SSM Tunnels never logs the secret and won’t show it again after you save.</p>
+    <p>Access keys don’t expire on their own. If your organization offers SSO, prefer it. <button type="button" class="btn sm ghost" data-a="addSso">Use SSO Instead</button></p></div></div>
+  <div class="f"><span class="lbl" id="lKPrev">What will be written</span><pre class="cmd cfg" id="kPrev" aria-labelledby="lKPrev"></pre></div></form>`;
+}
+function drawAws(){
+  const v=W.v, e=W.ed, b=$("#wBody"), a=document.activeElement, keep=a&&b.contains(a)&&a.dataset.a?selOf(a):null, had=b.contains(a);
+  const T={list:["AWS Profiles","Sign-ins aws can use for your tunnels. Each tunnel picks one in its form; otherwise it uses the default profile."],
+    sso:[e?`Edit “${e.name}”`:"Add SSO Profile",`Saved to ${CFG}. Nothing secret: you sign in through your browser.`],
+    keys:[e?`Replace Keys for “${e.name}”`:"Add Access Keys","For an IAM user. Prefer SSO when your organization offers it."]}[v];
+  $("#wTitle").textContent=T[0]; $("#wSub").textContent=T[1];
+  b.innerHTML=v==="sso"?ssoFormHTML(e):v==="keys"?keysFormHTML(e):`<div class="dlg-bd">${S.profiles.length?`<div class="wbar"><button class="btn sm" data-a="addSso">${ic("plus")}SSO Profile…</button><button class="btn sm" data-a="addKeys">${ic("plus")}Access Keys…</button><span class="sp"></span><button class="btn sm" data-a="testAll">Test All</button></div>
+    <ul class="profs" aria-label="AWS profiles">${S.profiles.map(profHTML).join("")}${envRow()}</ul>`:setupHTML()}${srcHTML()}</div>`;
+  $("#wFt").innerHTML=v==="list"?`${S.profiles.length?'<button class="btn" data-a="finder">Show in Finder</button>':""}<span class="sp"></span><button class="btn pri" data-close>Done</button>`
+    :`<span class="sp"></span><button class="btn" data-a="wBack">Cancel</button><button class="btn pri" type="submit" form="${v==="sso"?"fSso":"fKeys"}">${v==="sso"?(e?"Save":"Save &amp; Sign In"):"Save &amp; Test"}</button>`;
+  if(v==="sso") ssoCheck(); if(v==="keys") keysCheck();
+  if(had){ const el=keep&&$(keep,b); if(el) el.focus({preventScroll:true}); else if(!b.contains(document.activeElement)) ($('[data-a="siCancel"],[data-a="signin"]',b)||$("#wTitle")).focus({preventScroll:true}); }
+}
+function awsView(v,ed=null){ const s=$("#kSec"); if(s) s.value=""; W.v=v; W.ed=ed; W.rm=null; W.tried=false; drawAws(); if(v!=="list") $(v==="sso"?"#sName":"#kName").focus(); }
+function backToList(){ const n=W.ed&&W.ed.name; awsView("list"); n?focusProf(n):($('[data-a="addSso"]',$("#wBody"))||$("#wTitle")).focus(); }
+const focusProf=n=>{ const el=$(`.pf-h[data-p="${CSS.escape(n)}"]`); if(el){ el.focus(); el.scrollIntoView({block:"nearest"}); } };
+function openAws(p){
+  closeMenu(); const d=$("#dAws");
+  if(!d.open){ $$("dialog[open]").forEach(x=>x.close()); W.v="list"; W.ed=null; W.rm=null; }
+  if(p){ W.open.add(p); W.hl=p; } if(W.v==="list") drawAws(); if(!d.open) showSheet(d);
+  if(p) focusProf(p); else ($('[data-a="addSso"]',$("#wBody"))||$("#wTitle")).focus();
+}
+const NAME_RE=/^[A-Za-z0-9][A-Za-z0-9._-]{0,62}$/;
+function nameErr(n){ return !NAME_RE.test(n)?"Letters, digits, dot, dash or underscore.":S.profiles.some(p=>p.name===n&&p!==W.ed)?`${n} already exists.`:""; }
+function showMsgs(map,E,info){ for(const [k,[inp,msg]] of Object.entries(map)){ const bad=W.tried&&E[k], m=$(msg); m.className="msg"+(bad?" err":""); m.textContent=bad||info[k]||""; $(inp).setAttribute("aria-invalid",!!bad); } }
+const normUrl=u=>u.trim().replace(/\/+$/,"").toLowerCase();
+function ssoCheck(){
+  const d={name:$("#sName").value.trim(),reg:$("#sReg").value,url:$("#sUrl").value.trim(),sreg:$("#sSReg").value,acct:$("#sAcct").value.replace(/[\s-]/g,""),role:$("#sRole").value.trim()};
+  const m=d.url&&S.profiles.find(p=>p.type==="sso"&&p!==W.ed&&normUrl(p.url)===normUrl(d.url)), E={};
+  const ne=nameErr(d.name); if(ne) E.name=ne;
+  if(!/^https:\/\/[^\s/]+\.[^\s]+$/.test(d.url)) E.url="Use the https:// address of your AWS access portal.";
+  if(!/^\d{12}$/.test(d.acct)) E.acct="12 digits.";
+  if(!/^[\w+=,.@-]{1,64}$/.test(d.role)) E.role="The permission set or role name.";
+  const ren=W.ed&&d.name!==W.ed.name?usersOf(W.ed.name).length:0;
+  showMsgs({name:["#sName","#mSName"],url:["#sUrl","#mSUrl"],acct:["#sAcct","#mSAcct"],role:["#sRole","#mSRole"]},E,
+    {name:ren?`Renaming also updates the ${ren} tunnel${ren>1?"s":""} that use it.`:"",url:m?`Same start URL as ${m.name}: reuses [sso-session ${m.session}], so one sign-in covers both.`:""});
+  const ss=$("#sSReg"); ss.disabled=!!m; if(m) ss.value=m.ssoRegion;
+  const n=d.name||"<profile name>", sess=m?m.session:(W.ed&&W.ed.session)||d.name||"<profile name>";
+  let s=`[profile ${n}]\nsso_session = ${sess}\nsso_account_id = ${d.acct||"<account id>"}\nsso_role_name = ${d.role||"<role name>"}\nregion = ${d.reg}`;
+  if(!m) s+=`\n\n[sso-session ${sess}]\nsso_start_url = ${d.url||"<start url>"}\nsso_region = ${d.sreg}\nsso_registration_scopes = sso:account:access`;
+  $("#sPrev").textContent=s; return {E,d,m};
+}
+function saveSso(){
+  W.tried=true; const {E,d,m}=ssoCheck(), bad=Object.keys(E)[0];
+  if(bad) return $({name:"#sName",url:"#sUrl",acct:"#sAcct",role:"#sRole"}[bad]).focus();
+  const e=W.ed, old=e&&e.name;
+  const p=Object.assign(e||{type:"sso",app:true,st:"none"},{name:d.name,region:d.reg,acct:d.acct,role:d.role,who:d.role,url:m?m.url:d.url,ssoRegion:m?m.ssoRegion:d.sreg,session:m?m.session:(e&&e.session)||d.name});
+  if(m&&!e){ p.st=m.st; p.exp=m.exp; p.at=m.at; }
+  if(!e) S.profiles.push(p);
+  if(old&&old!==d.name) S.tunnels.forEach(t=>{ if(t.profile===old) t.profile=d.name; });
+  W.v="list"; W.ed=null; W.tried=false; W.open.add(d.name); W.hl=d.name; drawAws(); focusProf(d.name);
+  if(e||p.st==="ok"){ render(); return toast(e?`Saved ${d.name} to ${CFG}`:`Saved ${d.name} · already signed in through ${m.name}`); }
+  signIn(d.name);
+}
+function keysCheck(){
+  const d={name:$("#kName").value.trim(),reg:$("#kReg").value,id:$("#kId").value.trim().toUpperCase(),sec:$("#kSec").value}, e=W.ed, keep=!!e&&!d.id&&!d.sec, E={};
+  const ne=nameErr(d.name); if(ne) E.name=ne;
+  if(!keep){
+    if(/^ASIA/.test(d.id)) E.id="ASIA keys are temporary and need a session token. Use SSO instead.";
+    else if(!/^AKIA[A-Z0-9]{16}$/.test(d.id)) E.id="20 characters, starting with AKIA.";
+    if(d.sec.length!==40) E.sec=d.sec?"Secret access keys are 40 characters.":"Paste the secret shown when the key was created.";
+  }
+  showMsgs({name:["#kName","#mKName"],id:["#kId","#mKId"],sec:["#kSec","#mKSec"]},E,{});
+  const n=d.name||"<profile name>"; // the secret itself is never put in the preview, a toast, the log or the live region
+  $("#kPrev").textContent=`${CRED}\n[${n}]\naws_access_key_id = ${keep?maskKey(e.keyId):d.id?maskKey(d.id):"<key id>"}\naws_secret_access_key = ${keep?"(unchanged, not shown)":d.sec?"(hidden)":"<secret>"}\n\n${CFG}\n[${n==="default"?"default":"profile "+n}]\nregion = ${d.reg}`;
+  return {E,d,keep};
+}
+function saveKeys(){
+  W.tried=true; const {E,d,keep}=keysCheck(), bad=Object.keys(E)[0];
+  if(bad) return $({name:"#kName",id:"#kId",sec:"#kSec"}[bad]).focus();
+  const e=W.ed, old=e&&e.name, s=$("#kSec"); s.value=""; s.type="password"; // handed to the main process; the renderer forgets it now
+  const p=Object.assign(e||{type:"keys",app:true},{name:d.name,region:d.reg});
+  if(!keep) Object.assign(p,{keyId:d.id,st:"ok",who:d.name,acct:"444455556666",err:null,code:null,short:null});
+  if(!e) S.profiles.push(p);
+  if(old&&old!==d.name) S.tunnels.forEach(t=>{ if(t.profile===old) t.profile=d.name; });
+  W.v="list"; W.ed=null; W.tried=false; W.open.add(d.name); W.hl=d.name; drawAws(); focusProf(d.name);
+  toast(`Saved ${d.name} · testing it now`); test(d.name);
+}
+function removeProfile(n){
+  const i=S.profiles.findIndex(p=>p.name===n), p=S.profiles[i]; if(!p) return;
+  S.profiles.splice(i,1); W.rm=null; W.open.delete(n); if(si&&si.p===n) cancelSi(true);
+  const hit=S.tunnels.filter(t=>pn(t)===n&&busy(t)); hit.forEach(t=>{ t.st="failed"; t.err=`The config profile (${n}) could not be found`; });
+  render(); drawAws(); ($('[data-a="addSso"]',$("#wBody"))||$("#wTitle")).focus();
+  toast(`Removed ${n} from ${p.type==="keys"?CRED:CFG}`,["Undo",()=>{ S.profiles.splice(i,0,p); hit.forEach(t=>{ t.st="idle"; t.err=null; }); render(); }]);
+}
+
+/* ---------- tunnel form (copied from the app; new: AWS profile select + --profile in the command) ---------- */
+function profOpts(sel){
+  const d=prof("default"), tag=p=>p.st==="expired"?" · sign-in expired":p.st==="none"?" · not signed in":p.st==="error"?" · error":"";
+  return `<option value="">Default profile${d?` · ${TYPE[d.type]}${tag(d)}`:" · not set up"}</option>`+S.profiles.filter(p=>p.name!=="default").map(p=>`<option value="${esc(p.name)}"${p.name===sel?" selected":""}>${esc(p.name)} · ${TYPE[p.type]}${tag(p)}</option>`).join("")
+    +(sel&&!prof(sel)?`<option value="${esc(sel)}" selected>${esc(sel)} · not found</option>`:"");
+}
+function fd(){ const v=s=>$(s).value.trim(), b=$("#iBastion").value;
+  return {name:v("#iName"),desc:v("#iDesc"),profile:$("#iProf").value,target:b==="other"?v("#iTarget"):b,region:$("#iRegion").value,host:v("#iHost"),port:+v("#iPort"),local:+v("#iLocal"),env:envVal,auto:autoVal}; }
+const cmdHTML=d=>`aws ssm start-session \\\n${d.profile?`  --profile <b>${esc(d.profile)}</b> \\\n`:""}  --region <b>${esc(d.region)}</b> \\\n  --target <b>${esc(d.target||"i-…")}</b> \\\n  --document-name AWS-StartPortForwardingSessionToRemoteHost \\\n  --parameters host=<b>${esc(d.host||"<host>")}</b>,portNumber=<b>${d.port||"?"}</b>,localPortNumber=<b>${d.local||"?"}</b>`;
+const cmdText=d=>`aws ssm start-session${d.profile?` --profile ${d.profile}`:""} --region ${d.region} --target ${d.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters host=${d.host},portNumber=${d.port},localPortNumber=${d.local}`;
+function profSync(){ // keeps the select labels + status line live while sign-in happens elsewhere
+  const sel=$("#iProf"), v=sel.value, el=$("#mProf"), a=document.activeElement, keep=el.contains(a)&&a.dataset.a?selOf(a):null, had=el.contains(a);
+  sel.innerHTML=profOpts(v); sel.value=v;
+  const n=v||"default", p=prof(n);
+  if(si&&si.p===n){ el.className="msg"; el.innerHTML=siInline(n); }
+  else if(!p){ el.className="msg err"; el.textContent=v?`${v} isn’t in ${CFG} anymore. Pick another profile.`:"No default profile on this Mac. Set up AWS access first."; }
+  else { const s=stInfo(p), need=p.type==="sso"&&(p.st==="expired"||p.st==="none")&&!p.testing; el.className="msg"+(s.c==="ok"?" ok":s.c==="err"?" err":"");
+    el.innerHTML=s.c==="ok"?`✓ ${esc(s.l1)} · ${esc(s.l2)}${!v?` · <span class="mono">[default]</span>, used when no --profile is given`:""}`
+      :need?`${esc(s.l1)}${p.at?` ${esc(ago(p.at))}`:""}. This tunnel waits until you sign in. <button type="button" class="btn sm" data-a="signin" data-p="${esc(n)}">Sign In</button>`
+      :s.c==="err"?`${esc(s.l1)}. Replace its keys in Settings › AWS.`:esc(s.l1); }
+  if(had&&!el.contains(document.activeElement)) ((keep&&$(keep,el))||$('[data-a="copyCode"],[data-a="signin"]',el)||sel).focus();
+}
+function formSync(){
+  $$("#envSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.env===envVal)); $("#iAuto").setAttribute("aria-checked",autoVal);
+  const b=$("#iBastion").value; $("#fTarget").hidden=b!=="other"; $("#iRegion").disabled=b!=="other"; if(b!=="other") $("#iRegion").value=BREG[b];
+  $("#cmd").innerHTML=cmdHTML(fd()); profSync();
+}
+function openForm(t){
+  closeMenu(); edT=t||null; const d=t||{name:"",env:"other",desc:"",profile:"",target:B1,region:"us-west-2",host:"",port:5432,local:15011,auto:false};
+  $("#fTitle").textContent=t?`Edit “${t.name}”`:"New Tunnel";
+  $("#fSub").textContent=t&&busy(t)?"This tunnel is running. Connection changes apply after you reconnect.":"Saved to connections.json. No terminal needed.";
+  $("#iName").value=d.name; $("#iDesc").value=d.desc; $("#iProf").innerHTML=profOpts(d.profile); $("#iProf").value=d.profile;
+  $("#iBastion").value=BREG[d.target]?d.target:"other"; $("#iTarget").value=d.target; $("#iRegion").value=d.region;
+  $("#iHost").value=d.host; $("#iPort").value=d.port; $("#iLocal").value=d.local; $("#mName").textContent=""; envVal=d.env; autoVal=!!d.auto;
+  formSync(); showSheet($("#dForm")); (t?$("#iProf"):$("#iName")).focus();
+}
+function saveT(go){
+  const d=fd(); if(!d.name||(!edT&&S.tunnels.some(x=>x.name===d.name))){ $("#mName").textContent=d.name?"Already used by another tunnel.":"Enter a name."; return $("#iName").focus(); }
+  const was=edT&&edT.profile, t=edT||{k:d.port===6379?"redis":d.port===443?"https":"pg",st:"idle"};
+  Object.assign(t,d); if(!edT) S.tunnels.push(t);
+  $("#dForm").close(); render();
+  if(go&&!busy(t)) toggle(t);
+  toast(edT&&busy(t)&&was!==d.profile?`Saved. Reconnect ${d.name} to use ${d.profile||"the default profile"}.`:`Saved ${d.name}`);
+}
+
+/* ---------- sheets, menu, popover ---------- */
+function showSheet(d){
+  closeMenu(); opener=document.activeElement; openerSel=opener&&opener.dataset&&opener.dataset.a?selOf(opener):null; d.showModal();
+  const m=$(".main").getBoundingClientRect(), top=Math.max(12,m.top+44);
+  d.style.top=top+"px"; d.style.maxHeight=(innerHeight-top-12)+"px";
+  d.style.left=Math.max(12,Math.min(innerWidth-d.offsetWidth-12,m.left+m.width/2-d.offsetWidth/2))+"px";
+}
+function drawSet(){ const ps=S.profiles, w=waiting(), ex=ps.find(p=>p.st==="expired"&&usersOf(p.name).length);
+  $("#sAws").textContent=!ps.length?"No AWS credentials found. Tunnels can’t connect until you set up access."
+    :`${ps.length} profiles from ${CFG} and ${CRED}${ex?` · ${ex.name} sign-in expired${w.length?` (${w.length} tunnels waiting)`:""}`:""}. Each tunnel picks a profile in its form.`; }
+function openSet(){ closeMenu(); if($("dialog[open]")) return; drawSet(); showSheet($("#dSet")); $("#dSet .sw").focus(); }
+function openMenu(t,b){
+  const m=$("#menu"), id=esc(t.name), p=prof(t.profile);
+  m.innerHTML=`<button role="menuitem" data-a="toggle" data-id="${id}">${t.st==="waiting"?"Stop Waiting":busy(t)?"Disconnect":"Connect"}</button>`
+    +(t.st==="waiting"&&p&&p.type==="sso"?`<button role="menuitem" data-a="signin" data-p="${esc(p.name)}">Sign In to ${esc(p.name)}</button>`:"")
+    +`<hr><button role="menuitem" data-a="copyaws" data-id="${id}">Copy aws command</button><hr><button role="menuitem" data-a="edit-t" data-id="${id}">Edit…</button>`;
+  menuFrom=b; m.hidden=false; const r=b.getBoundingClientRect();
+  m.style.left=Math.max(8,Math.min(innerWidth-m.offsetWidth-8,r.right-m.offsetWidth))+"px"; m.style.top=Math.min(innerHeight-m.offsetHeight-8,r.bottom+4)+"px"; $("button",m).focus();
+}
+function closeMenu(back){ const m=$("#menu"); if(m.hidden) return; m.hidden=true; if(back&&menuFrom&&menuFrom.isConnected) menuFrom.focus(); }
+function togglePop(f){ popOpen=f??!popOpen; render(); if(popOpen) $("button",$("#pop")).focus(); else $("#tray").focus(); }
+
+/* ---------- actions ---------- */
+function act(a,b){
+  const p=b.dataset.p, t=b.dataset.id!=null?S.tunnels.find(x=>x.name===b.dataset.id):null;
+  switch(a){
+    case "toggle": return t&&toggle(t);
+    case "auto": t.auto=!t.auto; render(); return toast(t.auto?`${t.name} will connect at launch and reconnect if it drops`:`Auto-connect off for ${t.name}`);
+    case "more": return openMenu(t,b);
+    case "copyPort": copy(`localhost:${t.local}`); return toast(`Copied localhost:${t.local}`);
+    case "copyaws": copy(cmdText(t)); return toast("Copied aws command");
+    case "edit-t": return openForm(t);
+    case "add": return openForm(null);
+    case "saveGo": return saveT(true);
+    case "copyCmd": return copy(cmdText(fd()),b);
+    case "suggest": $("#iLocal").value=15011; return formSync();
+    case "signin": return signIn(p);
+    case "siCancel": return cancelSi();
+    case "siDismiss": si=null; return render();
+    case "copyCode": return si&&copy(si.code,b);
+    case "details": return openAws(p);
+    case "aws": return openAws();
+    case "awsFromSet": $("#dSet").close(); return openAws();
+    case "settings": return openSet();
+    case "pexp": W.open.has(p)?W.open.delete(p):W.open.add(p); W.hl=null; return drawAws();
+    case "test": return test(p);
+    case "testAll": return S.profiles.forEach(x=>test(x.name));
+    case "addSso": return awsView("sso");
+    case "addKeys": return awsView("keys");
+    case "edit": { const x=prof(p); return awsView(x.type,x); }
+    case "rm": W.rm=p; drawAws(); return $('[data-a="rmNo"]',$("#wBody")).focus();
+    case "rmNo": W.rm=null; drawAws(); return $(`[data-a="rm"][data-p="${CSS.escape(p)}"]`).focus();
+    case "rmYes": return removeProfile(p);
+    case "wBack": return backToList();
+    case "reveal": { const s=$("#kSec"), on=s.type==="password"; s.type=on?"text":"password"; b.setAttribute("aria-pressed",on); b.querySelector("span").textContent=on?"Hide":"Show"; return; }
+    case "connectAll": return S.tunnels.filter(x=>!busy(x)).forEach(toggle);
+    case "disconnectAll": S.tunnels.forEach(x=>{ if(busy(x)) x.st="idle"; }); render(); return toast("Stopped every session");
+    case "discProd": S.tunnels.forEach(x=>{ if(x.env==="prod"&&busy(x)) x.st="idle"; }); render(); return toast("Stopped production sessions");
+    case "sw": return b.setAttribute("aria-checked",b.getAttribute("aria-checked")!=="true");
+    case "tray": return togglePop();
+    case "finder": return toast(`Mock: reveals ${CFG} in Finder`);
+    case "nav": return toast("Mock: other views are in mockup-v3.html and logs-view.html");
+  }
+}
+function mock(m,b){
+  if(m==="expire") return expire();
+  if(m==="b"){ browser=b.dataset.v; $$('[data-m="b"]').forEach(x=>x.setAttribute("aria-pressed",x===b)); if(si&&si.phase==="waiting"&&browser!=="wait"){ clearTimeout(siT); resolveBrowser(); } return; }
+  if(m==="nocreds"){ if(stash){ S=stash; stash=null; } else { stash=S; S={profiles:[],tunnels:S.tunnels.map(t=>({...t,st:"idle",err:null}))}; si=null; clearTimeout(siT); } render(); return stash&&openAws(); }
+  if(m==="pop") return togglePop();
+  if(m==="reset"){ S=seed(); stash=null; si=null; clearTimeout(siT); W.open=new Set(["prod-sso"]); $$("dialog[open]").forEach(d=>d.close()); render(); return toast("Demo data restored"); }
+}
+
+/* ---------- events (delegated, no inline handlers) ---------- */
+document.addEventListener("click",e=>{
+  const th=e.target.closest("[data-theme-set]");
+  if(th){ const v=th.dataset.themeSet; v==="auto"?document.documentElement.removeAttribute("data-theme"):document.documentElement.setAttribute("data-theme",v); return $$("[data-theme-set]").forEach(x=>x.setAttribute("aria-pressed",x===th)); }
+  const m=e.target.closest("[data-m]"); if(m) return mock(m.dataset.m,m);
+  const c=e.target.closest("[data-close]"); if(c) return c.closest("dialog").close();
+  const env=e.target.closest("[data-env]"); if(env){ envVal=env.dataset.env; return formSync(); }
+  const pr=e.target.closest("[data-p]:not([data-a])"); if(pr&&pr.closest("#presets")){ $("#iPort").value=pr.dataset.p; return formSync(); }
+  if(e.target.closest("#iAuto")){ autoVal=!autoVal; return formSync(); }
+  const b=e.target.closest("[data-a]"), inMenu=!!e.target.closest("#menu");
+  if(inMenu) closeMenu(true); else if(!(b&&b.dataset.a==="more")) closeMenu();
+  if(b&&!b.disabled) act(b.dataset.a,b);
+});
+document.addEventListener("submit",e=>{ e.preventDefault(); if(e.target.id==="fSso") saveSso(); else if(e.target.id==="fKeys") saveKeys(); else if(e.target.id==="form") saveT(false); });
+document.addEventListener("input",e=>{ if(e.target.closest("#fSso")) ssoCheck(); else if(e.target.closest("#fKeys")) keysCheck(); else if(e.target.closest("#form")) formSync(); else if(e.target.id==="q"){ query=e.target.value; render(); } });
+document.addEventListener("change",e=>{ if(e.target.closest("#fSso")) ssoCheck(); else if(e.target.closest("#fKeys")) keysCheck(); else if(e.target.closest("#form")) formSync(); });
+$("#dAws").addEventListener("cancel",e=>{ if(W.v!=="list"){ e.preventDefault(); backToList(); } }); // Esc in a form = Cancel (back to the list)
+$$("dialog").forEach(d=>d.addEventListener("close",()=>{
+  if(d.id==="dAws"){ const s=$("#kSec"); if(s) s.value=""; W.v="list"; W.ed=null; W.rm=null; W.hl=null; W.tried=false; $("#wBody").innerHTML=""; }
+  if(!$("dialog[open]")) ((opener&&opener.isConnected?opener:openerSel&&$(`#win ${openerSel},#pop ${openerSel}`))||$("#q")).focus(); // opener may have re-rendered
+}));
+document.addEventListener("keydown",e=>{
+  if($("dialog[open]")) return; // native sheets handle Esc + focus trapping
+  const m=$("#menu");
+  if(!m.hidden){ const it=$$("button",m), i=it.indexOf(document.activeElement);
+    if(e.key==="Escape"){ e.preventDefault(); closeMenu(true); } else if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); it[(i+(e.key==="ArrowDown"?1:-1)+it.length)%it.length].focus(); } else if(e.key==="Tab") closeMenu();
+    return; }
+  if(e.key==="Escape"&&popOpen&&e.target.closest&&e.target.closest("#pop")) togglePop(false);
+});
+setInterval(()=>{ if(!$("dialog[open]")) render(); },30e3); // uptimes and "x left" move
+render();
+</script>
+</body>
+</html>

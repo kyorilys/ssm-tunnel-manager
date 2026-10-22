@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4C9BFF"/>
+      <stop offset="1" stop-color="#1C5BDA"/>
+    </linearGradient>
+    <linearGradient id="hole" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0A1A40"/>
+      <stop offset="1" stop-color="#16326E"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#7CFFB2" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#3CCF7A" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#06163D" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <!-- macOS icon grid: 824px rounded square centred on a 1024px canvas -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bg)"/>
+  <!-- tunnel portal -->
+  <g filter="url(#shadow)">
+    <path d="M248 772 V512 A264 264 0 0 1 776 512 V772 Z" fill="#FFFFFF"/>
+  </g>
+  <path d="M336 772 V520 A176 176 0 0 1 688 520 V772 Z" fill="url(#hole)"/>
+  <!-- road leading in -->
+  <path d="M512 760 V690 M512 650 V610" stroke="#FFD34D" stroke-width="20" stroke-linecap="round"/>
+  <!-- the connection light at the far end -->
+  <circle cx="512" cy="540" r="70" fill="url(#glow)"/>
+  <circle cx="512" cy="540" r="34" fill="#3CCF7A"/>
+  <!-- ground -->
+  <rect x="208" y="764" width="608" height="44" rx="22" fill="#FFFFFF"/>
+</svg>

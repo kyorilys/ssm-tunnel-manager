@@ -1,0 +1,27 @@
+{
+  "name": "ssm-tunnel-manager",
+  "productName": "SSM Tunnels",
+  "version": "0.1.0",
+  "description": "macOS menu-bar app that manages AWS SSM port-forwarding tunnels",
+  "main": "main.js",
+  "bin": {
+    "ssm-tunnels": "bin/ssm-tunnels.js"
+  },
+  "scripts": {
+    "test": "node --test 'test/*.test.js'",
+    "start": "electron .",
+    "package": "electron-packager . \"SSM Tunnels\" --platform=darwin --arch=arm64 --out=dist --overwrite --icon=assets/icon.icns --app-bundle-id=io.github.kyorilys.ssm-tunnels --ignore=^/design --ignore=^/test --ignore=^/dist --ignore=^/scripts --ignore=^/\\.claude",
+    "icon": "electron scripts/make-app-icon.js"
+  },
+  "keywords": [],
+  "author": "kyorilys",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron/packager": "20.3.0",
+    "electron": "^45.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kyorilys/ssm-tunnel-manager.git"
+  }
+}

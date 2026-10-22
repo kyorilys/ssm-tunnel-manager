@@ -1,0 +1,16 @@
+#!/bin/bash
+# Sanitized sample of a script that keeps its tunnels in a bash array.
+# Format: name|region|target|host|port|localPort|description
+
+TUNNELS=(
+    "onyx-prod|us-west-2|i-0357e26df0d26b2ae|onyx-db.c1500bcaaf2.us-west-2.rds.amazonaws.com|5432|15002|Onyx DB"
+    "onyx-stg|us-west-2|i-0357e26df0d26b2ae|onyx-db-stg.c1500bcaaf2.us-west-2.rds.amazonaws.com|5432|15004|Onyx Staging DB"
+    "zephyr-prod|us-west-2|i-0357e26df0d26b2ae|zephyr-db.c1500bcaaf2.us-west-2.rds.amazonaws.com|5432|15001|Zephyr Production DB"
+    "glacier-prod|us-west-2|i-0357e26df0d26b2ae|glacier-prod-db.c1500bcaaf2.us-west-2.rds.amazonaws.com|5432|15003|Glacier Production DB"
+    "glacier-stg-redis|us-west-2|i-0357e26df0d26b2ae|master.glacier-cache-stg.28i723.usw2.cache.amazonaws.com|6379|16004|Glacier Staging Redis"
+    "glacier-prod-redis|us-west-2|i-0357e26df0d26b2ae|master.glacier-redis.28i723.usw2.cache.amazonaws.com|6379|16003|Glacier Production Redis"
+    "glacier-cache|us-west-2|i-0357e26df0d26b2ae|glacier-cache-28i723.serverless.usw2.cache.amazonaws.com|6379|16002|Glacier Cache Serverless"
+    "glacier-jobs-redis|us-west-2|i-0357e26df0d26b2ae|master.glacier-jobs.28i723.usw2.cache.amazonaws.com|6379|16001|Glacier Jobs Redis"
+    "kelp-1|eu-central-1|i-0b0bdc12cc7c09e42|10.0.0.10|443|443|Kelp Tunnel 1"
+    "kelp-2|eu-central-1|i-0b0bdc12cc7c09e42|10.0.0.20|443|443|Kelp Tunnel 2"
+)

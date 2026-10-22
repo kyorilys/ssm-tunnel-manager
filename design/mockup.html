@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSM Tunnels</title>
+<style>
+  :root {
+    --bg: #f5f5f7; --panel: #ffffff; --line: #e3e3e8; --text: #1d1d1f; --muted: #6e6e73;
+    --accent: #0a84ff; --accent-text: #fff; --ok: #1f9d55; --warn: #c77700; --err: #d93636;
+    --chip: #ececf0; --shadow: 0 8px 30px rgba(0,0,0,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1b1e; --panel: #252529; --line: #38383d; --text: #f2f2f4; --muted: #9a9aa2;
+      --accent: #3b97ff; --ok: #3ccf7a; --warn: #f0a437; --err: #ff6b6b;
+      --chip: #323237; --shadow: 0 8px 30px rgba(0,0,0,.5);
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 13px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
+  .app { max-width: 860px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+  header { padding: 20px 20px 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 20px; margin: 0; font-weight: 650; }
+  .summary { color: var(--muted); }
+  .spacer { flex: 1; }
+  button { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line);
+    border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); font-weight: 600; }
+  button.danger { color: var(--err); }
+  .toolbar { padding: 0 20px 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .search { flex: 1; min-width: 180px; padding: 7px 10px; border-radius: 7px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--text); font: inherit; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: var(--panel); }
+  .seg button.on { background: var(--accent); color: var(--accent-text); }
+  main { padding: 0 20px 20px; flex: 1; }
+  .list { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .row { display: grid; grid-template-columns: 14px 1.3fr 1.6fr auto; gap: 14px; align-items: center;
+    padding: 12px 14px; border-bottom: 1px solid var(--line); }
+  .row:last-child { border-bottom: 0; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); opacity: .5; }
+  .row.active .dot { background: var(--ok); opacity: 1; box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
+  .row.connecting .dot { background: var(--warn); opacity: 1; animation: pulse 1s infinite; }
+  .row.failed .dot { background: var(--err); opacity: 1; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  .name { font-weight: 600; }
+  .desc { color: var(--muted); font-size: 12px; }
+  .route { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .route b { color: var(--text); font-weight: 600; }
+  .meta { display: flex; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+  .chip { background: var(--chip); color: var(--muted); border-radius: 5px; padding: 1px 7px; font-size: 11px; }
+  .chip.ok { color: var(--ok); } .chip.err { color: var(--err); }
+  .actions { display: flex; gap: 6px; align-items: center; }
+  .actions .copy { padding: 5px 8px; }
+  .menu { position: relative; }
+  .menu-pop { display: none; position: absolute; right: 0; top: 30px; z-index: 5; min-width: 130px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 4px; }
+  .menu.open .menu-pop { display: block; }
+  .menu-pop button { display: block; width: 100%; text-align: left; border: 0; background: none; }
+  .menu-pop button:hover { background: var(--chip); }
+  .empty { padding: 36px; text-align: center; color: var(--muted); }
+  footer { padding: 10px 20px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--line); display: flex; gap: 14px; }
+  /* modal */
+  .scrim { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); align-items: center; justify-content: center; padding: 16px; }
+  .scrim.open { display: flex; }
+  .modal { background: var(--panel); border-radius: 12px; box-shadow: var(--shadow); width: 100%; max-width: 480px; padding: 20px; max-height: 94vh; overflow: auto; }
+  .modal h2 { margin: 0 0 14px; font-size: 16px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid .full { grid-column: 1 / -1; }
+  label { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+  input, select { width: 100%; padding: 7px 9px; border-radius: 7px; border: 1px solid var(--line);
+    background: var(--bg); color: var(--text); font: inherit; }
+  input.mono { font-family: ui-monospace, Menlo, monospace; }
+  .hint { font-size: 12px; margin-top: 4px; color: var(--muted); }
+  .hint.warn { color: var(--warn); }
+  .preview { margin-top: 14px; padding: 10px; border-radius: 8px; background: var(--bg); border: 1px dashed var(--line);
+    font: 12px ui-monospace, Menlo, monospace; color: var(--muted); word-break: break-all; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  .toast { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg);
+    padding: 8px 14px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+  @media (max-width: 640px) { .row { grid-template-columns: 14px 1fr; } .row .route, .row .actions { grid-column: 2; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>SSM Tunnels</h1>
+    <span class="summary" id="summary"></span>
+    <span class="spacer"></span>
+    <button id="stopAll" class="danger">Disconnect all</button>
+    <button id="startAll">Connect all</button>
+    <button id="add" class="primary">+ Add connection</button>
+  </header>
+
+  <div class="toolbar">
+    <input class="search" id="q" placeholder="Search name, host or port…">
+    <div class="seg" id="filter">
+      <button data-f="all" class="on">All</button>
+      <button data-f="active">Active</button>
+      <button data-f="idle">Idle</button>
+    </div>
+  </div>
+
+  <main><div class="list" id="list"></div></main>
+
+  <footer>
+    <span>aws-cli 2.37.5</span>
+    <span>session-manager-plugin 1.2.553.0</span>
+    <span class="spacer"></span>
+    <span>Also detects tunnels started from the terminal</span>
+  </footer>
+</div>
+
+<div class="scrim" id="scrim">
+  <form class="modal" id="form" autocomplete="off">
+    <h2 id="modalTitle">Add connection</h2>
+    <div class="grid">
+      <div><label>Name</label><input name="name" placeholder="onyx-prod" required></div>
+      <div><label>Region</label>
+        <select name="region"><option>us-west-2</option><option>eu-central-1</option><option>us-east-1</option></select></div>
+      <div class="full"><label>Description</label><input name="desc" placeholder="Onyx DB"></div>
+      <div class="full"><label>Bastion instance</label>
+        <select name="target" id="target">
+          <option value="i-0357e26df0d26b2ae">i-0357e26df0d26b2ae — used by 8 tunnels</option>
+          <option value="i-0b0bdc12cc7c09e42">i-0b0bdc12cc7c09e42 — used by 2 tunnels</option>
+          <option value="">Other…</option>
+        </select></div>
+      <div class="full"><label>Remote host</label><input class="mono" name="host" id="host" placeholder="db.xxxx.us-west-2.rds.amazonaws.com" required></div>
+      <div><label>Remote port</label><input class="mono" name="port" id="rport" value="5432" inputmode="numeric"></div>
+      <div><label>Local port</label><input class="mono" name="local" id="lport" value="1436" inputmode="numeric">
+        <div class="hint" id="portHint">Free</div></div>
+    </div>
+    <div class="preview" id="preview"></div>
+    <div class="modal-actions">
+      <button type="button" id="cancel">Cancel</button>
+      <button type="submit" class="primary">Save</button>
+      <button type="button" id="saveGo" class="primary">Save &amp; connect</button>
+    </div>
+  </form>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  // Mock data only: the real app will read ~/Library/Application Support/ssm-tunnels/connections.json
+  const BASTION = "i-0357e26df0d26b2ae";
+  let tunnels = [
+    ["onyx-prod","us-west-2",BASTION,"onyx-db.c1500bcaaf2.us-west-2.rds.amazonaws.com",5432,15002,"Onyx DB"],
+    ["onyx-stg","us-west-2",BASTION,"onyx-db-stg.c1500bcaaf2.us-west-2.rds.amazonaws.com",5432,15004,"Onyx Staging DB"],
+    ["zephyr-prod","us-west-2",BASTION,"zephyr-db.c1500bcaaf2.us-west-2.rds.amazonaws.com",5432,15001,"Zephyr Production DB"],
+    ["glacier-prod","us-west-2",BASTION,"glacier-prod-db.c1500bcaaf2.us-west-2.rds.amazonaws.com",5432,15003,"Glacier Production DB"],
+    ["glacier-stg-redis","us-west-2",BASTION,"master.glacier-cache-stg.28i723.usw2.cache.amazonaws.com",6379,16004,"Glacier Staging Redis"],
+    ["glacier-prod-redis","us-west-2",BASTION,"master.glacier-redis.28i723.usw2.cache.amazonaws.com",6379,16003,"Glacier Production Redis"],
+    ["glacier-cache","us-west-2",BASTION,"glacier-cache-28i723.serverless.usw2.cache.amazonaws.com",6379,16002,"Glacier Cache Serverless"],
+    ["glacier-jobs-redis","us-west-2",BASTION,"master.glacier-jobs.28i723.usw2.cache.amazonaws.com",6379,16001,"Glacier Jobs Redis"],
+    ["kelp-1","eu-central-1","i-0b0bdc12cc7c09e42","10.0.0.10",443,443,"Kelp Tunnel 1"],
+    ["kelp-2","eu-central-1","i-0b0bdc12cc7c09e42","10.0.0.20",443,443,"Kelp Tunnel 2"],
+  ].map(([name,region,target,host,port,local,desc]) => ({name,region,target,host,port,local,desc,state:"idle",pid:null,since:null}));
+  // Pre-seed a few states so every visual state is visible in the mockup
+  Object.assign(tunnels[0], {state:"active", pid:48211, since:Date.now()-3*3600e3});
+  Object.assign(tunnels[3], {state:"active", pid:48390, since:Date.now()-25*60e3});
+  Object.assign(tunnels[6], {state:"failed", error:"Port 16002 already in use"});
+
+  let filter = "all", editing = null;
+  const $ = s => document.querySelector(s);
+  const toast = m => { const t=$("#toast"); t.textContent=m; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),1800); };
+  const ago = ms => { const m=Math.floor((Date.now()-ms)/60000); return m<60 ? m+"m" : Math.floor(m/60)+"h "+(m%60)+"m"; };
+
+  function render() {
+    const q = $("#q").value.toLowerCase();
+    const shown = tunnels.filter(t =>
+      (filter==="all" || (filter==="active" ? t.state==="active" : t.state!=="active")) &&
+      (!q || [t.name,t.desc,t.host,t.local].join(" ").toLowerCase().includes(q)));
+    const n = tunnels.filter(t=>t.state==="active").length;
+    $("#summary").textContent = `${n} active · ${tunnels.length} saved`;
+    $("#list").innerHTML = shown.length ? shown.map(t => `
+      <div class="row ${t.state}" data-n="${t.name}">
+        <span class="dot"></span>
+        <div><div class="name">${t.name}</div><div class="desc">${t.desc||""}</div></div>
+        <div>
+          <div class="route"><b>localhost:${t.local}</b> → ${t.host}:${t.port}</div>
+          <div class="meta">
+            <span class="chip">${t.region}</span>
+            ${t.state==="active" ? `<span class="chip ok">PID ${t.pid} · up ${ago(t.since)}</span>` : ""}
+            ${t.state==="connecting" ? `<span class="chip">Connecting…</span>` : ""}
+            ${t.state==="failed" ? `<span class="chip err">${t.error}</span>` : ""}
+          </div>
+        </div>
+        <div class="actions">
+          ${t.state==="active" ? `<button class="copy" data-a="copy" title="Copy localhost:${t.local}">Copy</button>` : ""}
+          <button data-a="toggle" class="${t.state==="active"?"danger":"primary"}">${t.state==="active"?"Disconnect":t.state==="connecting"?"Cancel":t.state==="failed"?"Retry":"Connect"}</button>
+          <div class="menu"><button data-a="menu" aria-label="More">⋯</button>
+            <div class="menu-pop"><button data-a="edit">Edit</button><button data-a="dup">Duplicate</button><button data-a="del" class="danger">Delete</button></div></div>
+        </div>
+      </div>`).join("") : `<div class="empty">No tunnels match.</div>`;
+  }
+
+  function connect(t) {
+    t.state = "connecting"; render();
+    setTimeout(() => { Object.assign(t, {state:"active", pid:40000+Math.floor(Math.random()*9000), since:Date.now()}); render(); toast(`${t.name} connected on localhost:${t.local}`); }, 900);
+  }
+  function disconnect(t) { Object.assign(t, {state:"idle", pid:null}); render(); }
+
+  $("#list").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    const t = tunnels.find(x => x.name === b.closest(".row").dataset.n), a = b.dataset.a;
+    document.querySelectorAll(".menu.open").forEach(m => m.classList.remove("open"));
+    if (a==="menu") b.parentElement.classList.toggle("open");
+    if (a==="toggle") t.state==="active"||t.state==="connecting" ? disconnect(t) : connect(t);
+    if (a==="copy") { toast(`Copied localhost:${t.local}`); }
+    if (a==="edit") openForm(t);
+    if (a==="dup") openForm({...t, name:t.name+"-copy", local:nextFreePort()}, true);
+    if (a==="del") { tunnels = tunnels.filter(x=>x!==t); render(); toast(`Deleted ${t.name}`); }
+  });
+  $("#filter").addEventListener("click", e => { const b=e.target.closest("button"); if(!b) return;
+    filter=b.dataset.f; document.querySelectorAll("#filter button").forEach(x=>x.classList.toggle("on",x===b)); render(); });
+  $("#q").addEventListener("input", render);
+  $("#startAll").onclick = () => tunnels.filter(t=>t.state!=="active").forEach(connect);
+  $("#stopAll").onclick = () => tunnels.forEach(disconnect);
+
+  // form
+  const f = $("#form");
+  const nextFreePort = () => { let p=1436; while (tunnels.some(t=>+t.local===p)) p++; return p; };
+  function updatePreview() {
+    const d = Object.fromEntries(new FormData(f));
+    const clash = tunnels.find(t => +t.local===+d.local && t!==editing);
+    $("#portHint").textContent = clash ? `Already used by ${clash.name}` : "Free";
+    $("#portHint").className = "hint" + (clash ? " warn" : "");
+    $("#preview").textContent = `aws ssm start-session --region ${d.region} --target ${d.target||"<instance>"} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters host=${d.host||"<host>"},portNumber=${d.port},localPortNumber=${d.local}`;
+  }
+  function openForm(t, isNew) {
+    editing = isNew ? null : t;
+    $("#modalTitle").textContent = t && !isNew ? `Edit ${t.name}` : "Add connection";
+    f.reset();
+    if (t) { f.name.value=t.name; f.region.value=t.region; f.desc.value=t.desc; f.target.value=t.target; f.host.value=t.host; f.port.value=t.port; f.local.value=t.local; }
+    else f.local.value = nextFreePort();
+    updatePreview(); $("#scrim").classList.add("open");
+  }
+  f.addEventListener("input", updatePreview);
+  const close = () => $("#scrim").classList.remove("open");
+  $("#add").onclick = () => openForm();
+  $("#cancel").onclick = close;
+  $("#scrim").addEventListener("click", e => { if (e.target.id==="scrim") close(); });
+  function save(go) {
+    if (!f.reportValidity()) return;
+    const d = Object.fromEntries(new FormData(f));
+    const rec = {name:d.name, region:d.region, target:d.target, host:d.host, port:+d.port, local:+d.local, desc:d.desc};
+    if (editing) Object.assign(editing, rec); else { editing = {...rec, state:"idle", pid:null}; tunnels.push(editing); }
+    const t = editing; close(); render(); toast(`Saved ${t.name}`); if (go) connect(t);
+  }
+  f.addEventListener("submit", e => { e.preventDefault(); save(false); });
+  $("#saveGo").onclick = () => save(true);
+  document.addEventListener("click", e => { if (!e.target.closest(".menu")) document.querySelectorAll(".menu.open").forEach(m=>m.classList.remove("open")); });
+  render();
+</script>
+</body>
+</html>

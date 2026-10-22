@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSM Tunnels v3</title>
+<style>
+:root{
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+  --wall:linear-gradient(140deg,#8fb8f2 0%,#b9a7ee 42%,#f2b9a0 100%);
+  --chrome:rgba(236,236,240,.72);--chrome2:rgba(246,246,248,.88);--content:#fff;
+  --text:#1d1d1f;--text2:#5d5d62;--text3:#6e6e73;
+  --line:rgba(0,0,0,.09);--line2:rgba(0,0,0,.2);--fill:rgba(0,0,0,.055);--fill2:rgba(0,0,0,.1);--hover:rgba(0,0,0,.035);--sel:rgba(0,122,255,.09);
+  --accent:#007aff;--accent-t:#0062cc;--accent-f:rgba(0,122,255,.12);--btn:#0066d6;
+  --green:#1b7d36;--green-s:#34c759;--green-f:rgba(52,199,89,.16);
+  --red:#c4001a;--red-s:#ff3b30;--red-f:rgba(255,59,48,.1);
+  --orange:#a34700;--orange-s:#ff9500;--orange-f:rgba(255,149,0,.14);--orange-w:rgba(255,149,0,.06);
+  --sw-off:rgba(0,0,0,.13);--focus:rgba(0,122,255,.5);--toast-act:#5eb0ff;
+  --shadow:0 0 0 .5px rgba(0,0,0,.22),0 22px 70px rgba(0,0,0,.3);--pshadow:0 0 0 .5px rgba(0,0,0,.18),0 10px 36px rgba(0,0,0,.22);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  color-scheme:dark;--wall:linear-gradient(140deg,#14213d 0%,#2e1f4d 45%,#4a2620 100%);
+  --chrome:rgba(40,40,44,.7);--chrome2:rgba(44,44,48,.9);--content:#1e1e20;--text:#f2f2f5;--text2:#a6a6ad;--text3:#8e8e95;
+  --line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.2);--fill:rgba(255,255,255,.075);--fill2:rgba(255,255,255,.13);--hover:rgba(255,255,255,.04);--sel:rgba(10,132,255,.2);
+  --accent:#0a84ff;--accent-t:#5aa9ff;--accent-f:rgba(10,132,255,.2);--btn:#1673e0;
+  --green:#40d763;--green-s:#30d158;--green-f:rgba(48,209,88,.17);--red:#ff6961;--red-s:#ff453a;--red-f:rgba(255,69,58,.15);
+  --orange:#ffac33;--orange-s:#ff9f0a;--orange-f:rgba(255,159,10,.17);--orange-w:rgba(255,159,10,.07);
+  --sw-off:rgba(255,255,255,.17);--focus:rgba(10,132,255,.6);--toast-act:#0062cc;
+  --shadow:0 0 0 .5px rgba(255,255,255,.12),0 22px 70px rgba(0,0,0,.6);--pshadow:0 0 0 .5px rgba(255,255,255,.12),0 10px 36px rgba(0,0,0,.5);
+}}
+:root[data-theme=dark]{
+  color-scheme:dark;--wall:linear-gradient(140deg,#14213d 0%,#2e1f4d 45%,#4a2620 100%);
+  --chrome:rgba(40,40,44,.7);--chrome2:rgba(44,44,48,.9);--content:#1e1e20;--text:#f2f2f5;--text2:#a6a6ad;--text3:#8e8e95;
+  --line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.2);--fill:rgba(255,255,255,.075);--fill2:rgba(255,255,255,.13);--hover:rgba(255,255,255,.04);--sel:rgba(10,132,255,.2);
+  --accent:#0a84ff;--accent-t:#5aa9ff;--accent-f:rgba(10,132,255,.2);--btn:#1673e0;
+  --green:#40d763;--green-s:#30d158;--green-f:rgba(48,209,88,.17);--red:#ff6961;--red-s:#ff453a;--red-f:rgba(255,69,58,.15);
+  --orange:#ffac33;--orange-s:#ff9f0a;--orange-f:rgba(255,159,10,.17);--orange-w:rgba(255,159,10,.07);
+  --sw-off:rgba(255,255,255,.17);--focus:rgba(10,132,255,.6);--toast-act:#0062cc;
+  --shadow:0 0 0 .5px rgba(255,255,255,.12),0 22px 70px rgba(0,0,0,.6);--pshadow:0 0 0 .5px rgba(255,255,255,.12),0 10px 36px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:13px/1.38 var(--font);color:var(--text);background:var(--wall) fixed;-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:default}
+:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+[hidden]{display:none!important}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--mono)}
+.i{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.sp{flex:1}
+/* menu bar */
+.menubar{position:fixed;inset:0 0 auto;height:26px;display:flex;align-items:center;gap:16px;padding:0 12px;background:var(--chrome);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);z-index:30}
+.tray{position:relative;display:flex;align-items:center;gap:4px;height:22px;padding:0 7px;border:0;border-radius:5px;background:none;font-weight:600;font-variant-numeric:tabular-nums}
+.tray .i{width:16px;height:16px}
+.tray[aria-expanded=true]{background:var(--fill2)}
+.tray.prod{background:var(--orange-s);color:#000}
+.tray .tdot{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--red-s);box-shadow:0 0 0 1.5px var(--chrome2)}
+/* window */
+.win{position:absolute;top:46px;left:50%;transform:translateX(-50%);width:min(1000px,calc(100vw - 32px));height:max(440px,min(680px,calc(100vh - 110px)));display:grid;grid-template-columns:224px minmax(0,1fr);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.side{display:flex;flex-direction:column;min-height:0;background:var(--chrome);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);border-right:1px solid var(--line)}
+.lights{display:flex;gap:8px;padding:18px 18px 8px}
+.lights i{width:12px;height:12px;border-radius:50%;background:#ff5f57;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2)}
+.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
+.nav{flex:1;overflow:auto;padding:0 10px 10px}
+.nav h3{font-size:11px;font-weight:600;color:var(--text3);margin:14px 8px 3px}
+.nav button{display:flex;align-items:center;gap:8px;width:100%;min-height:28px;padding:0 8px;border:0;border-radius:6px;background:none;text-align:left}
+.nav button:hover{background:var(--hover)}
+.nav button[aria-current]{background:var(--fill2);font-weight:600}
+.nav .i{width:16px;height:16px;color:var(--accent)}
+.nav .prod .i{color:var(--orange-s)}.nav .attn .i{color:var(--red-s)}.nav .ok .i{color:var(--green-s)}
+.nav .n{margin-left:auto;font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;font-weight:400}
+.nav .two{min-height:40px}.nav .lb{display:flex;flex-direction:column;line-height:1.25;min-width:0}.nav .lb small{color:var(--text2);font-size:11px}
+.side-ft{padding:10px 16px 12px;border-top:1px solid var(--line);font-size:11px;color:var(--text2);display:grid;gap:3px}
+.side-ft span{display:flex;align-items:center;gap:6px}.side-ft .i{width:12px;height:12px;color:var(--green)}
+.side-act{display:flex;align-items:center;margin:4px -7px -4px}
+.link{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 7px;border:0;border-radius:5px;background:none;color:var(--text2);font-size:11px;white-space:nowrap}
+.link:hover{background:var(--fill);color:var(--text)}.side-ft .link .i{color:var(--text2)}.link[aria-current]{background:var(--fill2);color:var(--text)}
+.pulse{width:6px;height:6px;margin:0 3px;border-radius:50%;background:var(--green-s);animation:pulse 2s ease-in-out infinite}
+.main{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--content)}
+/* toolbar */
+.tb{flex:none;height:52px;display:flex;align-items:center;gap:8px;padding:0 12px 0 20px;border-bottom:1px solid var(--line)}
+.tb h1{font-size:15px;font-weight:700;margin:0;line-height:1.15;white-space:nowrap}
+.sub{font-size:11px;color:var(--text2);margin:0}
+.tb>div:first-child{min-width:0}.tb>div:first-child .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tba{display:contents}
+.search{display:flex;align-items:center;gap:6px;height:28px;flex:0 1 200px;min-width:110px;margin-left:auto;padding:0 8px;border-radius:7px;background:var(--fill);color:var(--text2)}
+.search input{border:0;background:none;outline:none;width:100%;min-width:0;color:var(--text)}
+.search input::-webkit-search-cancel-button{opacity:.6}
+.search:focus-within{box-shadow:0 0 0 3px var(--focus)}
+.btn{height:28px;padding:0 11px;border:0;border-radius:6px;background:var(--fill);display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-weight:500;flex:none}
+.btn:hover{background:var(--fill2)}.btn:disabled{opacity:.4;pointer-events:none}
+.btn.pri{background:var(--btn);color:#fff}.btn.pri:hover{filter:brightness(1.08)}
+.btn.sm{height:24px;padding:0 9px;font-size:12px}
+.btn.ghost{background:none;color:var(--accent-t)}
+.btn.red{color:var(--red)}
+.btn.ic{width:28px;padding:0;justify-content:center}
+.btn.sm.ic{width:24px}
+/* production banner */
+.banner{flex:none;display:flex;align-items:center;gap:10px;padding:7px 12px 7px 20px;background:var(--orange-f);border-bottom:1px solid color-mix(in srgb,var(--orange-s) 40%,transparent)}
+.banner>.i{color:var(--orange);width:16px;height:16px}.banner b{color:var(--orange)}
+.banner.off{background:var(--red-f);border-bottom-color:color-mix(in srgb,var(--red-s) 35%,transparent)}.banner.off>.i,.banner.off b{color:var(--red)}
+/* list */
+.list{flex:1;overflow:auto;padding:0 0 28px}
+.sec{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:14px 20px 6px 24px;background:var(--content)}
+.sec h2{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;margin:0}
+.sec .meta{font-size:11px;color:var(--text2)}
+.sec.prod h2{color:var(--orange)}
+.rows{list-style:none;margin:0;padding:0 8px;display:grid;gap:1px}
+.row{position:relative;display:grid;grid-template-columns:66px minmax(0,1fr) 172px 56px 44px 28px;column-gap:12px;align-items:center;min-height:54px;padding:6px 8px 6px 16px;border-radius:8px;scroll-margin:40px 0 8px}
+.row:hover{background:var(--hover)}
+.row.sel{background:var(--sel)}
+.row:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--focus)}
+.row.prod::before{content:"";position:absolute;left:5px;top:10px;bottom:10px;width:4px;border-radius:2px;background:repeating-linear-gradient(135deg,var(--orange-s) 0 3px,transparent 3px 6px)}
+.row.prod.active::before,.row.prod.connecting::before{background:var(--orange-s)}
+.row.prod.active:not(.sel){background:var(--orange-w)}
+.port{height:30px;border:0;border-radius:7px;background:var(--fill);color:var(--text2);font:600 13px/1 var(--mono);font-variant-numeric:tabular-nums}
+.port:hover{box-shadow:inset 0 0 0 1px var(--line2)}
+.active .port{background:var(--green-f);color:var(--green)}
+.connecting .port{background:var(--accent-f);color:var(--accent-t)}
+.reconnecting .port{background:var(--orange-f);color:var(--orange)}
+.failed .port{background:var(--red-f);color:var(--red)}
+.mn{min-width:0}
+.nm{display:flex;align-items:center;gap:7px;min-width:0}
+.nm b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row:not(.active):not(.connecting) .nm b{font-weight:500}
+.badge{flex:none;font-size:10px;font-weight:700;letter-spacing:.05em;line-height:16px;padding:0 5px;border-radius:4px}
+.badge.prod{background:var(--orange-s);color:#000}
+.badge.ext{display:inline-flex;align-items:center;gap:3px;background:var(--fill2);color:var(--text);letter-spacing:0;font-weight:600}
+.badge.ext .i{width:11px;height:11px}
+.kind{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--text2);flex:none}
+.kind .i{width:12px;height:12px}
+.sub2{font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.sub2 .mono{font-size:11px}
+.st{min-width:0;font-size:12px}
+.st .l1{display:flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.st .l2{display:flex;align-items:center;gap:6px;margin-top:2px;color:var(--text2);font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.st.ok .l1{color:var(--green)}.st.err .l1{color:var(--red)}.st.busy .l1{color:var(--accent-t)}.st.re .l1{color:var(--orange)}
+.st.note .l1{color:var(--text2);font-weight:400}
+.st .i{width:13px;height:13px}
+.dot{width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+.spin{width:11px;height:11px;flex:none;border-radius:50%;border:2px solid var(--accent-f);border-top-color:var(--accent);animation:spin .8s linear infinite}
+.spin.re{border-color:var(--orange-f);border-top-color:var(--orange-s)}
+.sw{position:relative;width:44px;height:28px;padding:0;border:0;border-radius:14px;background:none}
+.sw::before{content:"";position:absolute;inset:3px;border-radius:11px;background:var(--sw-off);transition:background .2s}
+.sw::after{content:"";position:absolute;top:5px;left:5px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3),0 0 0 .5px rgba(0,0,0,.08);transition:transform .2s}
+.sw[aria-checked=true]::before{background:var(--green-s)}.sw[aria-checked=true]::after{transform:translateX(16px)}
+.sw[aria-checked=mixed]::before{background:var(--accent)}.sw[aria-checked=mixed]::after{transform:translateX(8px)}
+.reconnecting .sw[aria-checked=mixed]::before{background:var(--orange-s)}
+.auto{display:inline-flex;align-items:center;justify-content:center;gap:3px;width:56px;height:22px;padding:0;border:0;border-radius:11px;background:none;box-shadow:inset 0 0 0 1px var(--line2);color:var(--text3);font-size:11px;font-weight:600}
+.auto .i{width:11px;height:11px;stroke-width:1.9}
+.auto:hover{background:var(--fill);color:var(--text)}
+.auto[aria-pressed=true]{background:var(--accent-f);color:var(--accent-t);box-shadow:none}
+.more{width:28px;height:28px;display:grid;place-items:center;border:0;border-radius:6px;background:none;color:var(--text2);opacity:0}
+.more:hover{background:var(--fill)}
+.row:hover .more,.row:focus-within .more,.row.sel .more{opacity:1}
+.strip{grid-column:2/-1;display:flex;align-items:center;gap:8px;margin:6px 0 2px;padding:5px 6px 5px 10px;border-radius:7px;font-size:12px}
+.strip>span{flex:1;min-width:0}
+.strip.err{background:var(--red-f)}.strip.err>.i{color:var(--red)}
+.strip.re{background:var(--orange-f)}.strip.re>.i{color:var(--orange)}
+.strip small{display:block;color:var(--text2);margin-top:2px;font-size:11.5px}
+.eline{display:block;font:11px/1.45 var(--mono);overflow-wrap:anywhere}
+.strip code{font:11px var(--mono);padding:0 4px;border-radius:4px;background:var(--fill2)}
+.age{display:inline-flex;align-items:center;gap:6px;flex:none;height:20px;padding:0 8px;border-radius:10px;background:var(--content);color:var(--orange);font-size:11px;font-weight:600;white-space:nowrap}
+.age .bar{width:28px;height:4px;border-radius:2px;background:var(--orange-f);overflow:hidden}.age .bar i{display:block;height:100%;background:var(--orange-s)}
+.det{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:6px 10px;align-items:center;margin:12px 16px 0;padding:10px 12px;border:1px dashed var(--line2);border-radius:10px}
+.det>.i{width:18px;height:18px;color:var(--text2)}
+.notice{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:6px 10px;align-items:center;margin:12px 16px 0;padding:10px 12px;border-radius:10px;background:var(--fill)}
+.notice>.i{width:18px;height:18px;color:var(--text2)}
+.empty{padding:56px 20px;text-align:center;color:var(--text2)}
+.empty .i{display:block;width:28px;height:28px;margin:0 auto 8px;color:var(--text3)}
+/* archived view */
+.ainfo{display:flex;gap:8px;align-items:flex-start;margin:14px 20px 8px 24px;font-size:12px;color:var(--text2)}
+.arow{position:relative;display:grid;grid-template-columns:66px minmax(0,1fr) auto auto;column-gap:12px;align-items:center;min-height:62px;padding:8px 8px 8px 16px;border-radius:8px}
+.arow:hover{background:var(--hover)}
+.arow.prod::before{content:"";position:absolute;left:5px;top:10px;bottom:10px;width:4px;border-radius:2px;background:repeating-linear-gradient(135deg,var(--orange-s) 0 3px,transparent 3px 6px)}
+.arow .port{display:grid;place-items:center}
+.arow .eline{color:var(--text2);margin-top:2px}
+/* first run */
+.first{max-width:540px;margin:0 auto;padding:32px 20px;text-align:center}
+.appicon{width:64px;height:64px;margin:0 auto;border-radius:15px;display:grid;place-items:center;background:linear-gradient(160deg,#4aa3ff,#0a5bd6);color:#fff;box-shadow:0 6px 16px rgba(10,91,214,.35)}
+.appicon .i{width:36px;height:36px;stroke-width:1.5}
+.first h2{font-size:20px;margin:14px 0 6px}
+.first>p{color:var(--text2);margin:0 0 18px}
+.imp{text-align:left;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:16px}
+.imp-hd{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--fill)}
+.imp-hd .mono{font-size:11px;color:var(--text2)}
+.imp ul{list-style:none;margin:0;padding:4px 0;max-height:176px;overflow:auto}
+.imp li{display:grid;grid-template-columns:1fr 56px 84px;gap:8px;padding:3px 12px;font-size:12px}
+.imp li.clash .mono:nth-child(2){color:var(--orange);font-weight:600}
+.env{font-size:11px;color:var(--text2)}.env.prod{color:var(--orange);font-weight:600}
+.imp .note{display:flex;gap:8px;padding:8px 12px;border-top:1px solid var(--line);font-size:12px;color:var(--text2)}
+.imp .note>span{flex:1}.imp .note .btn{align-self:center}
+.imp .note.w{color:var(--orange)}
+.imp .note.ok{color:var(--green)}
+.autobox{display:flex;gap:12px;align-items:center;padding:8px 6px 8px 12px;border-radius:8px;background:var(--fill);text-align:left}
+.autobox>div{flex:1;min-width:0}.autobox p{margin:1px 0 0;font-size:11.5px;color:var(--text2)}
+.first .btns{display:flex;gap:8px;justify-content:center}
+.first .foot{font-size:11px;color:var(--text2);margin-top:14px}
+/* toast */
+.toast{position:absolute;left:50%;bottom:16px;z-index:5;display:flex;align-items:center;gap:8px;padding:7px 8px 7px 14px;border-radius:9px;background:var(--text);color:var(--content);font-weight:500;box-shadow:var(--pshadow);opacity:0;transform:translate(-50%,8px);pointer-events:none;transition:opacity .18s,transform .18s}
+.toast.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.toast button{height:24px;padding:0 6px;border:0;background:none;color:var(--toast-act);font-weight:600}
+.toast:not(:has(button)){padding-right:14px}
+/* context menu + popover */
+.menu{position:fixed;z-index:50;min-width:230px;padding:5px;border-radius:9px;background:var(--chrome2);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);box-shadow:var(--pshadow)}
+.menu button{display:flex;align-items:center;gap:6px;width:100%;height:24px;padding:0 10px;border:0;border-radius:5px;background:none;text-align:left}
+.menu button:hover,.menu button:focus{background:var(--accent);color:#fff;outline:none}
+.menu kbd{margin-left:auto;font:inherit;opacity:.55}
+.menu .ck{width:14px;display:inline-flex}
+.menu hr{border:0;border-top:1px solid var(--line);margin:4px 8px}
+.menu .danger{color:var(--red)}
+.pop{position:fixed;top:30px;z-index:40;width:340px;max-height:calc(100vh - 48px);display:flex;flex-direction:column;border-radius:12px;background:var(--chrome2);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);box-shadow:var(--pshadow);overflow:hidden}
+.pop[hidden],.menu[hidden]{display:none}
+.pop-hd{display:flex;align-items:baseline;gap:8px;padding:12px 14px 6px}
+.pop-warn,.pop-note{display:flex;align-items:center;gap:8px;margin:4px 10px;padding:6px 6px 6px 10px;border-radius:8px;font-size:12px}
+.pop-warn{background:var(--orange-f)}.pop-warn>.i{color:var(--orange)}.pop-warn b{color:var(--orange)}
+.pop-warn.e{background:var(--red-f)}.pop-warn.e>.i,.pop-warn.e b{color:var(--red)}
+.pop-note{background:var(--fill)}
+.pop-list{overflow:auto;padding:2px 6px 6px}
+.pop h4{font-size:11px;font-weight:600;color:var(--text3);margin:10px 8px 2px}
+.prow{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto;gap:8px;align-items:center;min-height:38px;padding:2px 4px 2px 8px;border-radius:7px}
+.prow:hover{background:var(--hover)}
+.prow .dot{background:none;box-shadow:inset 0 0 0 1.5px var(--text3)}
+.prow.active .dot{background:var(--green-s);box-shadow:none}.prow.connecting .dot{background:var(--accent);box-shadow:none;animation:pulse 1.2s infinite}
+.prow.failed .dot{background:var(--red-s);box-shadow:none}.prow.reconnecting .dot{background:var(--orange-s);box-shadow:none;animation:pulse 1.6s infinite}
+.prow .pt{display:flex;align-items:center;gap:6px}.prow .pt b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow .am{display:inline-flex;color:var(--accent-t)}.prow .am .i{width:11px;height:11px}
+.prow small{display:block;color:var(--text2);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow.failed small{color:var(--red)}
+.prow.reconnecting small{color:var(--orange)}
+.prow .port-s{font:500 12px var(--mono);color:var(--text2)}
+.prow .sw{transform:scale(.85)}
+.pop-ft{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--line)}
+/* dialogs (sheets) */
+dialog{position:fixed;inset:auto;margin:0;padding:0;border:0;border-radius:12px;background:var(--content);color:var(--text);box-shadow:var(--pshadow);width:min(560px,calc(100vw - 24px));overflow:auto}
+dialog::backdrop{background:rgba(0,0,0,.22)}
+dialog[open]{animation:drop .22s ease-out}
+.dlg-hd{padding:16px 20px 2px}.dlg-hd h2{font-size:15px;margin:0 0 2px}
+.dlg-bd{display:grid;gap:10px;padding:10px 20px 4px}
+.dlg-ft{display:flex;align-items:center;gap:8px;padding:14px 20px 16px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}.cols.b{grid-template-columns:2fr 1fr}
+.f{display:grid;gap:4px;align-content:start;min-width:0}
+.f label,.lbl{font-size:12px;font-weight:500;color:var(--text2)}
+.f input,.f select{width:100%;height:28px;padding:0 8px;border:1px solid var(--line2);border-radius:6px;background:var(--content)}
+.f input:focus,.f select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--focus)}
+.f input[readonly],.f select:disabled{background:var(--fill);color:var(--text2);opacity:1}
+.f input.mono{font-size:12px}
+.f.bad input{border-color:var(--red-s)}
+.inrow{display:flex;gap:6px}
+.msg{font-size:11.5px;line-height:16px}.msg:empty{display:none}
+.msg.ok{color:var(--green)}.msg.warn{color:var(--orange)}.msg.err{color:var(--red)}
+.seg{display:inline-flex;gap:2px;padding:2px;border-radius:7px;background:var(--fill)}
+.seg button{flex:1;height:24px;padding:0 10px;border:0;border-radius:5px;background:none;font-size:12px}
+.seg button[aria-pressed=true]{background:var(--content);box-shadow:0 1px 2px rgba(0,0,0,.18);font-weight:600}
+.seg button[data-env=prod][aria-pressed=true]{background:var(--orange-s);color:#000}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{height:20px;padding:0 7px;border:0;border-radius:10px;background:var(--fill);font-size:11px;color:var(--text2)}
+.chip:hover{background:var(--fill2);color:var(--text)}
+.cmdwrap{position:relative}
+.cmd{margin:0;padding:10px 64px 10px 12px;border-radius:8px;background:var(--fill);font:11.5px/1.55 var(--mono);white-space:pre-wrap;word-break:break-all;color:var(--text2)}
+.cmd b{color:var(--text);font-weight:600}
+.cmdwrap .btn{position:absolute;top:6px;right:6px}
+.ca{display:grid;gap:6px}.ca-h{display:flex;align-items:center;gap:6px}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{padding:2px 8px;border-radius:6px;background:var(--fill);font-size:12px}.tag.prod{background:var(--orange-f)}
+.tag .mono{font-size:11px;color:var(--text2)}
+.ca.skip{color:var(--text2);font-size:12px}.ca.skip .i{color:var(--orange)}
+.set{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;align-items:start;padding:12px 0 0;border-top:1px solid var(--line)}
+.set:first-child{border:0;padding-top:0}
+.set h3{font-size:13px;margin:0}.set p{margin:2px 0 0;font-size:12px;color:var(--text2)}
+.set .full{grid-column:1/-1}
+.set select{height:28px;padding:0 8px;border:1px solid var(--line2);border-radius:6px;background:var(--content)}
+.set select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--focus)}
+.rules{margin:0;padding-left:18px;font-size:12px;color:var(--text2);display:grid;gap:3px}
+.tool{display:flex;align-items:center;gap:6px;font-size:12px}.tool .i{color:var(--green)}
+.keys{width:100%;border-collapse:collapse;font-size:12.5px}
+.keys th{text-align:left;font-size:11px;color:var(--text2);font-weight:600;padding:0 0 6px}
+.keys td{padding:5px 0;border-top:1px solid var(--line)}
+kbd{display:inline-block;min-width:20px;padding:1px 5px;margin-right:3px;border-radius:4px;background:var(--fill);border:1px solid var(--line);font:500 11.5px var(--font);text-align:center}
+/* mock controls: deliberately NOT app chrome */
+.mock{position:fixed;left:12px;right:12px;bottom:10px;z-index:20;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:7px 10px;border-radius:10px;background:rgba(18,18,22,.86);color:#eee;font-size:12px;border:1px dashed rgba(255,255,255,.35);width:max-content;max-width:calc(100vw - 24px);margin:0 auto}
+.mock b{font-size:10px;letter-spacing:.1em;color:#ffd60a}
+.mock button{height:24px;padding:0 8px;border-radius:5px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff}
+.mock button:hover{background:rgba(255,255,255,.18)}
+.mock button[aria-pressed=true]{background:#fff;color:#000}
+.mock .sep{width:1px;height:16px;background:rgba(255,255,255,.2)}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{50%{opacity:.35}}
+@keyframes drop{from{opacity:0;transform:translateY(-10px)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.spin{border-color:var(--accent)}}
+@media (prefers-reduced-motion:reduce){.spin.re{border-color:var(--orange-s)}}
+@media (max-width:860px){.win{grid-template-columns:1fr}.side{display:none}.menubar .mi{display:none}}
+@media (max-width:640px){
+  .row{grid-template-columns:58px minmax(0,1fr) 56px 44px 28px}.row .st{grid-column:2/-1;grid-row:2;margin-top:4px}.strip{grid-row:3}
+  .arow{grid-template-columns:minmax(0,1fr) auto}.arow .port{display:none}.arow .mn{grid-column:1/-1}.arow .btn{grid-row:2;margin-top:6px;justify-self:start}
+  .tb .lbl{display:none}.tb .btn:not(.ic){width:28px;padding:0;justify-content:center}.search{width:auto;flex:1}.tb>div:first-child .sub{display:none}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-db" viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/></symbol>
+  <symbol id="i-cache" viewBox="0 0 16 16"><path d="M8 2 2 5l6 3 6-3-6-3ZM2 8l6 3 6-3M2 11l6 3 6-3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 16 16"><path d="M6 2v3M10 2v3M4 5h8v3a4 4 0 0 1-8 0V5ZM8 12v2"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 2 1.5 13.5h13L8 2Z"/><path d="M8 6.5v3M8 11.6v.1"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="m5.8 5.8 4.4 4.4m0-4.4-4.4 4.4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.8 3 3.6v4c0 3.2 2.2 5.6 5 6.6 2.8-1 5-3.4 5-6.6v-4L8 1.8Z"/><path d="M8 5.5v3M8 10.6v.1"/></symbol>
+  <symbol id="i-term" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><path d="m4.5 6 2 2-2 2M8.5 10.5h3"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 16 16"><g fill="currentColor" stroke="none"><circle cx="3.5" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="12.5" cy="8" r="1.3"/></g></symbol>
+  <symbol id="i-list" viewBox="0 0 16 16"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.1M2.5 8h.1M2.5 12h.1"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.5 3.5 9H8l-1 5.5L12.5 7H8l1-5.5Z"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 16 16"><path d="M6 2h4M6.5 2v4L3 13a1 1 0 0 0 .9 1.5h8.2A1 1 0 0 0 13 13L9.5 6V2"/></symbol>
+  <symbol id="i-server" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.1M4.5 11.25h.1"/></symbol>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3.5 3.5"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-play" viewBox="0 0 16 16"><path d="M5 3.5v9l7-4.5-7-4.5Z"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 16 16"><rect x="4" y="4" width="8" height="8" rx="1.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-7"/></symbol>
+  <symbol id="i-ring" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/></symbol>
+  <symbol id="i-tunnel" viewBox="0 0 16 16"><path d="M2 13.5V8a6 6 0 0 1 12 0v5.5M5.5 13.5V8.5a2.5 2.5 0 0 1 5 0v5M1 13.5h14"/></symbol>
+  <symbol id="i-loop" viewBox="0 0 16 16"><path d="M13 6a5.2 5.2 0 0 0-9.6-1.4M3 10a5.2 5.2 0 0 0 9.6 1.4"/><path d="M3 2.2v2.9h2.9M13 13.8v-2.9h-2.9"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="3.5" rx="1"/><path d="M2.5 6v6.5a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V6M6.5 9h3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></symbol>
+  <symbol id="i-back" viewBox="0 0 16 16"><path d="M10 3 5 8l5 5"/></symbol>
+</defs></svg>
+
+<header class="menubar" aria-label="Menu bar (mock)">
+  <b>SSM Tunnels</b><span class="mi">File</span><span class="mi">Edit</span><span class="mi">View</span><span class="mi">Window</span><span class="mi">Help</span>
+  <span class="sp"></span>
+  <button class="tray" id="tray" data-a="tray" aria-haspopup="dialog" aria-expanded="false"></button>
+  <span id="clock"></span>
+</header>
+
+<div class="win" id="win">
+  <aside class="side" aria-label="Sidebar">
+    <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+    <nav class="nav" id="side" aria-label="Filters"></nav>
+    <div class="side-ft">
+      <span><svg class="i"><use href="#i-check"/></svg>aws-cli 2.37.5</span>
+      <span><svg class="i"><use href="#i-check"/></svg>session-manager-plugin 1.2.553.0</span>
+      <span><i class="pulse"></i>Watching ps for Terminal sessions</span>
+      <div class="side-act" id="sideAct"></div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="tb">
+      <div><h1 id="title">All Tunnels</h1><p class="sub" id="subtitle"></p></div>
+      <button class="btn ic" id="bBack" data-a="view" data-v="all" aria-label="Back to All Tunnels" title="Back to All Tunnels" style="order:-1" hidden><svg class="i"><use href="#i-back"/></svg></button>
+      <label class="search"><svg class="i"><use href="#i-search"/></svg><span class="vh">Search tunnels</span><input id="q" type="search" placeholder="Name, host, port…" spellcheck="false"></label>
+      <span class="tba" id="tbActs">
+        <button class="btn" id="bAll" data-a="connectAll" title="Connect idle tunnels in this view (K)"><svg class="i"><use href="#i-play"/></svg><span class="lbl">Connect All…</span></button>
+        <button class="btn" id="bNone" data-a="disconnectAll" title="Stop every SSM session, including ones started in Terminal (X)"><svg class="i"><use href="#i-stop"/></svg><span class="lbl">Disconnect All</span></button>
+        <button class="btn ic pri" data-a="add" aria-label="New tunnel" title="New tunnel (N)"><svg class="i"><use href="#i-plus"/></svg></button>
+      </span>
+    </div>
+    <div id="banner"></div>
+    <div class="list" id="list"></div>
+    <div class="toast" id="toast"></div>
+  </main>
+</div>
+
+<div class="pop" id="pop" role="dialog" aria-label="SSM Tunnels menu bar popover" hidden></div>
+<div class="menu" id="menu" role="menu" aria-label="Tunnel actions" hidden></div>
+
+<dialog id="dForm" aria-labelledby="fTitle">
+  <form id="form" novalidate autocomplete="off">
+    <div class="dlg-hd"><h2 id="fTitle">New Tunnel</h2><p class="sub" id="fSub"></p></div>
+    <div class="dlg-bd">
+      <div class="cols">
+        <div class="f" data-f="name"><label for="iName">Name</label><input id="iName" class="mono" spellcheck="false" placeholder="onyx-prod" aria-describedby="mName"><div class="msg err" id="mName"></div></div>
+        <div class="f"><span class="lbl" id="lEnv">Environment</span>
+          <div class="seg" id="envSeg" role="group" aria-labelledby="lEnv"><button type="button" data-env="prod">Production</button><button type="button" data-env="stg">Staging</button><button type="button" data-env="other">Other</button></div>
+          <div class="msg warn" id="mEnv"></div></div>
+      </div>
+      <div class="f"><label for="iDesc">Description</label><input id="iDesc" placeholder="Onyx DB"></div>
+      <div class="cols b">
+        <div class="f"><label for="iBastion">Bastion instance</label><select id="iBastion"></select></div>
+        <div class="f"><label for="iRegion">Region</label><select id="iRegion"><option>us-west-2</option><option>eu-central-1</option><option>ap-northeast-1</option><option>us-east-1</option><option>eu-west-1</option></select></div>
+      </div>
+      <div class="f" data-f="target" id="fTarget"><label for="iTarget">Instance ID</label><input id="iTarget" class="mono" spellcheck="false" placeholder="i-0357e26df0d26b2ae" aria-describedby="mTarget"><div class="msg err" id="mTarget"></div></div>
+      <div class="f" data-f="host"><label for="iHost">Remote host</label><input id="iHost" class="mono" spellcheck="false" placeholder="mydb.xxxx.us-west-2.rds.amazonaws.com" aria-describedby="mHost"><div class="msg err" id="mHost"></div></div>
+      <div class="cols">
+        <div class="f" data-f="port"><label for="iPort">Remote port</label><input id="iPort" class="mono" inputmode="numeric" aria-describedby="mPort">
+          <div class="chips" id="presets" aria-label="Common ports"><button type="button" class="chip" data-p="5432" title="5432">Postgres</button><button type="button" class="chip" data-p="6379" title="6379">Redis</button><button type="button" class="chip" data-p="3306" title="3306">MySQL</button><button type="button" class="chip" data-p="443" title="443">HTTPS</button></div>
+          <div class="msg err" id="mPort"></div></div>
+        <div class="f" data-f="local"><label for="iLocal">Local port (localhost)</label>
+          <div class="inrow"><input id="iLocal" class="mono" inputmode="numeric" aria-describedby="mLocal"><button type="button" class="btn sm" id="bSuggest" title="Pick the next free port in your usual range">Suggest</button></div>
+          <div class="msg" id="mLocal" aria-live="polite"></div>
+          <div><button type="button" class="btn sm" id="bFix" hidden></button></div></div>
+      </div>
+      <div class="autobox"><div><b id="lAuto">Auto-connect</b><p id="dAuto">Connects whenever SSM Tunnels opens, including at login, and reconnects if the session drops (2s, 4s, 8s… up to every 60s, and right after wake).</p></div><button type="button" class="sw" role="switch" id="iAuto" aria-checked="false" aria-labelledby="lAuto" aria-describedby="dAuto"></button></div>
+      <div class="f"><span class="lbl">Command the app will run</span><div class="cmdwrap"><pre class="cmd" id="cmd"></pre><button type="button" class="btn sm" id="bCopyCmd">Copy</button></div></div>
+    </div>
+    <div class="dlg-ft"><button type="button" class="btn red" id="bDel" hidden>Delete</button><span class="sp"></span><button type="button" class="btn" id="bCancel">Cancel</button><button type="button" class="btn" id="bSaveGo">Save &amp; Connect</button><button type="submit" class="btn pri" id="bSave">Save</button></div>
+  </form>
+</dialog>
+
+<dialog id="dAll" aria-labelledby="aTitle">
+  <div class="dlg-hd"><h2 id="aTitle">Connect All</h2><p class="sub" id="aSub"></p></div>
+  <div class="dlg-bd" id="aBody"></div>
+  <div class="dlg-ft"><span class="sp"></span><button class="btn" data-close>Cancel</button><button class="btn pri" id="aGo">Connect</button></div>
+</dialog>
+
+<dialog id="dSet" aria-labelledby="sTitle">
+  <div class="dlg-hd"><h2 id="sTitle">Settings</h2></div>
+  <div class="dlg-bd">
+    <div class="set">
+      <div><h3 id="lLogin">Open at login</h3><p id="dLogin">When your Mac starts, SSM Tunnels opens in the menu bar (no window), connects the tunnels marked <b>Auto</b>, and keeps them up: a dropped session retries after 2s, 4s, 8s… up to every 60s, and right away after wake from sleep.</p></div>
+      <button class="sw" role="switch" id="sLogin" data-a="login" aria-labelledby="lLogin" aria-describedby="dLogin"></button>
+      <div class="full tags" id="sAuto"></div>
+    </div>
+    <div class="set">
+      <div><h3><label for="sArch">Auto-archive tunnels that keep failing</label></h3><p>Archived tunnels stop retrying and leave the list and menu bar. They stay in storage; restore any time from Archived.</p></div>
+      <select id="sArch"><option value="3">After 3 days</option><option value="5">After 5 days</option><option value="7">After 7 days</option><option value="14">After 14 days</option><option value="30">After 30 days</option><option value="0">Never</option></select>
+      <ul class="rules full"><li>The clock starts at a tunnel’s first failure and resets once it stays connected for 10 seconds.</li><li>Days when <b>every</b> tunnel fails don’t count. That points to an expired AWS login or no network, not a bad tunnel.</li></ul>
+    </div>
+    <div class="set">
+      <div class="full"><h3>Tools</h3></div>
+      <div class="full tool"><svg class="i"><use href="#i-check"/></svg>aws-cli <span class="mono">2.37.5</span></div>
+      <div class="full tool"><svg class="i"><use href="#i-check"/></svg>session-manager-plugin <span class="mono">1.2.553.0</span></div>
+      <p class="full">Tunnels are stored in <span class="mono">~/Library/Application Support/SSM Tunnels/connections.json</span></p>
+    </div>
+  </div>
+  <div class="dlg-ft"><span class="sp"></span><button class="btn pri" data-close>Done</button></div>
+</dialog>
+
+<dialog id="dKeys" aria-labelledby="kTitle">
+  <div class="dlg-hd"><h2 id="kTitle">Keyboard Shortcuts</h2><p class="sub">Browsers reserve most ⌘ keys, so this mock uses single keys when no field is focused.</p></div>
+  <div class="dlg-bd"><table class="keys"><thead><tr><th>Action</th><th>In the app</th><th>In this mock</th></tr></thead><tbody>
+    <tr><td>New tunnel</td><td><kbd>⌘N</kbd></td><td><kbd>N</kbd></td></tr>
+    <tr><td>Search</td><td><kbd>⌘F</kbd></td><td><kbd>/</kbd></td></tr>
+    <tr><td>Select previous / next</td><td><kbd>↑</kbd><kbd>↓</kbd></td><td><kbd>↑</kbd><kbd>↓</kbd></td></tr>
+    <tr><td>Connect / disconnect selected</td><td><kbd>Space</kbd></td><td><kbd>Space</kbd></td></tr>
+    <tr><td>Toggle Auto-connect</td><td><kbd>⌥⌘A</kbd></td><td><kbd>A</kbd></td></tr>
+    <tr><td>Retry now</td><td><kbd>⌘R</kbd></td><td><kbd>R</kbd></td></tr>
+    <tr><td>Edit selected</td><td><kbd>⌘I</kbd> <kbd>↩</kbd></td><td><kbd>E</kbd> <kbd>↩</kbd></td></tr>
+    <tr><td>Duplicate</td><td><kbd>⌘D</kbd></td><td><kbd>D</kbd></td></tr>
+    <tr><td>Copy localhost:port</td><td><kbd>⌘C</kbd></td><td><kbd>C</kbd></td></tr>
+    <tr><td>Delete (undo in toast)</td><td><kbd>⌘⌫</kbd></td><td><kbd>⌫</kbd></td></tr>
+    <tr><td>Connect all…</td><td><kbd>⇧⌘K</kbd></td><td><kbd>K</kbd></td></tr>
+    <tr><td>Disconnect all</td><td><kbd>⌥⇧⌘K</kbd></td><td><kbd>X</kbd></td></tr>
+    <tr><td>Settings</td><td><kbd>⌘,</kbd></td><td><kbd>,</kbd></td></tr>
+    <tr><td>Menu bar popover (global)</td><td><kbd>⌃⌥T</kbd></td><td><kbd>T</kbd></td></tr>
+    <tr><td>Close sheet / popover</td><td><kbd>Esc</kbd></td><td><kbd>Esc</kbd></td></tr>
+  </tbody></table></div>
+  <div class="dlg-ft"><span class="sp"></span><button class="btn pri" data-close>Done</button></div>
+</dialog>
+
+<div class="mock" role="region" aria-label="Mock controls, not part of the app">
+  <b>MOCK</b>
+  <span>Theme</span><button data-theme-set="auto" aria-pressed="true">Auto</button><button data-theme-set="light" aria-pressed="false">Light</button><button data-theme-set="dark" aria-pressed="false">Dark</button>
+  <span class="sep"></span><button data-m="seed">Sample data</button><button data-m="first">First run</button>
+  <span class="sep"></span><button data-m="ext">Terminal: ssm-connect zephyr-prod</button><button data-m="raw">Terminal: raw aws command</button>
+  <span class="sep"></span><button data-m="boot">Restart Mac</button><button data-m="wake">Sleep → Wake</button><button data-m="net" aria-pressed="false">Wi-Fi off</button><button data-m="day">+1 day</button>
+  <span class="sep"></span><button data-m="pop">Menu bar popover</button><button data-m="keys">Shortcuts ?</button>
+</div>
+<div id="live" class="vh" aria-live="polite"></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ic=n=>`<svg class="i" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const B1="i-0357e26df0d26b2ae", B2="i-0b0bdc12cc7c09e42", MIN=60e3, HR=36e5, DAY=864e5, now=()=>Date.now();
+const SCRIPT="~/bin/ssm-connect";
+// Copied from ssm-connect's TUNNELS array (name|region|target|host|port|localPort|description) + env.
+// env for glacier-cache / glacier-jobs-redis is an ASSUMPTION (prod bastion, no -stg suffix): confirm with user.
+const RAW=[
+  ["onyx-prod","us-west-2",B1,"onyx-db.c1500bcaaf2.us-west-2.rds.amazonaws.com",5432,15002,"Onyx DB","prod"],
+  ["onyx-stg","us-west-2",B1,"onyx-db-stg.c1500bcaaf2.us-west-2.rds.amazonaws.com",5432,15004,"Onyx Staging DB","stg"],
+  ["zephyr-prod","us-west-2",B1,"zephyr-db.c1500bcaaf2.us-west-2.rds.amazonaws.com",5432,15001,"Zephyr Production DB","prod"],
+  ["glacier-prod","us-west-2",B1,"glacier-prod-db.c1500bcaaf2.us-west-2.rds.amazonaws.com",5432,15003,"Glacier Production DB","prod"],
+  ["glacier-stg-redis","us-west-2",B1,"master.glacier-cache-stg.28i723.usw2.cache.amazonaws.com",6379,16004,"Glacier Staging Redis","stg"],
+  ["glacier-prod-redis","us-west-2",B1,"master.glacier-redis.28i723.usw2.cache.amazonaws.com",6379,16003,"Glacier Production Redis","prod"],
+  ["glacier-cache","us-west-2",B1,"glacier-cache-28i723.serverless.usw2.cache.amazonaws.com",6379,16002,"Glacier Cache Serverless","prod"],
+  ["glacier-jobs-redis","us-west-2",B1,"master.glacier-jobs.28i723.usw2.cache.amazonaws.com",6379,16001,"Glacier Jobs Redis","prod"],
+  ["kelp-1","eu-central-1",B2,"10.0.0.10",443,443,"Kelp Tunnel 1","other"],
+  ["kelp-2","eu-central-1",B2,"10.0.0.20",443,443,"Kelp Tunnel 2","other"],
+];
+const ENVS={prod:"Production",stg:"Staging",other:"Other"};
+const VIEWS={all:"All Tunnels",active:"Connected",attn:"Needs Attention",prod:"Production",stg:"Staging",other:"Other",archived:"Archived"};
+const SYS0={5432:"postgres (PID 812)",6379:"redis-server (PID 903)"}; // non-SSM listeners (real app: lsof)
+const ERR={ // last line of aws / session-manager-plugin stderr
+  tok:"An error occurred (ExpiredTokenException) when calling the StartSession operation: The security token included in the request is expired",
+  net:'Could not connect to the endpoint URL: "https://ssm.us-west-2.amazonaws.com/"',
+  dest:"Connection to destination port failed, check SSM Agent logs.",
+  sleep:"Session ended while the Mac was asleep"};
+let SYS={}, tunnels=[], unmanaged=[], view="all", query="", selId=null, uid=0, popOpen=false, menuFrom=null, offline=false, imp=null;
+let cfg={login:true,archiveDays:7};
+const make=([name,region,target,host,port,local,desc,env],auto=false)=>({id:++uid,name,region,target,host,port,local,desc,env,auto,state:"idle",attempt:0,failDays:0,failSince:null});
+const byId=id=>tunnels.find(t=>t.id===id);
+const inferEnv=n=>/prod/.test(n)?"prod":/stg|staging/.test(n)?"stg":"other";
+const live=t=>t.state==="active"||t.state==="connecting";      // holds (or is claiming) its local port
+const busy=t=>live(t)||t.state==="reconnecting";                 // app is keeping it up
+const failing=t=>t.state==="failed"||t.state==="reconnecting";
+const shown=()=>tunnels.filter(t=>!t.archived), archived=()=>tunnels.filter(t=>t.archived);
+const prodLive=()=>shown().filter(t=>t.env==="prod"&&t.state==="active");
+const dur=ms=>{const m=Math.max(0,Math.floor((now()-ms)/MIN));return m<1?"just now":m<60?`${m}m`:m<1440?`${Math.floor(m/60)}h ${String(m%60).padStart(2,"0")}m`:`${Math.floor(m/1440)}d`};
+const ago=ms=>{const d=dur(ms);return d==="just now"?d:d+" ago"};
+const day=ms=>new Date(ms).toLocaleDateString([],{month:"short",day:"numeric"});
+const hm=ms=>new Date(ms).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
+const fmt=n=>Number(n).toLocaleString();
+const backoff=n=>Math.min(60,2**n);                              // seconds before attempt n: 2,4,8…60
+const secs=t=>Math.max(0,Math.ceil((t.nextAt-now())/1e3));
+const kind=t=>+t.port===5432?["PostgreSQL","db"]:+t.port===3306?["MySQL","db"]:+t.port===6379?[/valkey/i.test(t.host)?"Valkey":"Redis","cache"]:+t.port===443?["HTTPS","lock"]:["TCP","plug"];
+const awsCmd=d=>`aws ssm start-session --region ${d.region} --target ${d.target} --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters host=${d.host},portNumber=${d.port},localPortNumber=${d.local}`;
+const shortId=b=>`${b.slice(0,6)}…${b.slice(-5)}`;
+const stopT=t=>{clearTimeout(t.timer);clearTimeout(t.stab)};
+function seed(){
+  tunnels.forEach(stopT); SYS={...SYS0}; offline=false; imp=null; cfg={login:true,archiveDays:7}; tunnels=RAW.map(r=>make(r));
+  const T=n=>tunnels.find(t=>t.name===n);
+  Object.assign(T("onyx-prod"),{auto:true,state:"active",pid:48211,since:now()-192*MIN,origin:"app"});
+  Object.assign(T("kelp-1"),{auto:true,state:"active",pid:49102,since:now()-48*MIN,origin:"app"});
+  Object.assign(T("onyx-stg"),{state:"active",pid:50331,since:now()-37*MIN,origin:"app"});
+  Object.assign(T("glacier-prod"),{state:"active",pid:51907,since:now()-25*MIN,origin:"terminal"});
+  Object.assign(T("kelp-2"),{state:"failed",error:"Port 443 already in use",by:"kelp-1",at:now()-2*MIN,failSince:now()-2*MIN});
+  Object.assign(T("glacier-stg-redis"),{auto:true,state:"reconnecting",attempt:3,nextAt:now()+8e3,error:ERR.tok,at:now()-14e3,failSince:now()-14e3,failsLeft:1});
+  Object.assign(T("glacier-cache"),{auto:true,state:"reconnecting",attempt:7204,nextAt:now()+41e3,error:ERR.dest,at:now()-19e3,failSince:now()-5*DAY-3*HR,failDays:5,doom:true});
+  Object.assign(T("glacier-jobs-redis"),{auto:true,archived:true,archivedAt:now()-14*HR,error:ERR.dest,failSince:now()-8*DAY-14*HR,failDays:7,skipped:1,doom:true,notice:true});
+  unmanaged=[{id:++uid,region:"us-west-2",target:B1,host:T("onyx-stg").host,port:5432,local:15434,pid:52288,since:now()-125*MIN}];
+  const r=T("glacier-prod-redis"); r.auto=true; connect(r,7000); // still coming up after launch
+}
+// Who holds a local port right now? (saved tunnel, Terminal session, or another process)
+function owner(port,self,skipU){
+  const t=tunnels.find(x=>x!==self&&live(x)&&+x.local===+port); if(t) return {label:t.name};
+  const u=unmanaged.find(x=>x!==skipU&&+x.local===+port); if(u) return {label:`Terminal session (PID ${u.pid})`};
+  return SYS[port]?{label:SYS[port]}:null;
+}
+function suggest(remote,self){ // follows the user's existing convention: Postgres 143x, Redis 637x, HTTPS 1443
+  let p={5432:1430,3306:3300,6379:6370,443:1443}[+remote]||Math.min(+remote+10000,60000);
+  while(owner(p,self)||tunnels.some(x=>x!==self&&+x.local===p)) p++;
+  return p;
+}
+const matchQ=t=>{const q=query.trim().toLowerCase(); return !q||[t.name,t.desc,t.host,t.local,t.region,kind(t)[0],ENVS[t.env]].join(" ").toLowerCase().includes(q)};
+function visible(){
+  return shown().filter(t=>{
+    if(view==="active"&&!live(t)) return false;
+    if(view==="attn"&&!failing(t)) return false;
+    if(ENVS[view]&&t.env!==view) return false;
+    if(view.startsWith("i-")&&t.target!==view) return false;
+    return matchQ(t);
+  });
+}
+const viewLabel=()=>VIEWS[view]||`Bastion ${shortId(view)}`;
+
+/* ---------- state transitions ---------- */
+function toggle(t){
+  if(t.state==="active"||t.state==="reconnecting") return down(t);
+  if(t.state==="connecting"){ clearTimeout(t.timer); t.state="idle"; announce(`${t.name} cancelled`); return render(); }
+  connect(t); // production connects like any other tunnel: no confirm step
+}
+function connect(t,delay){
+  clearTimeout(t.timer); Object.assign(t,{state:"connecting",inflight:false,note:null}); render(); announce(`Connecting ${t.name}`);
+  t.timer=setTimeout(()=>settle(t),delay||900+Math.random()*700);
+}
+function outcome(t){ // mock: decide how this attempt ends
+  if(offline) return {error:ERR.net};
+  const o=owner(t.local,t); if(o) return {error:`Port ${t.local} already in use`,by:o.label};
+  if(t.doom) return {error:t.error};
+  if(t.failsLeft>0){ t.failsLeft--; return {error:t.error}; }
+  return null;
+}
+function settle(t){ t.inflight=false; const r=outcome(t); r?fail(t,r):up(t); }
+function fail(t,{error,by}){
+  clearTimeout(t.stab); t.failSince=t.failSince||now();
+  Object.assign(t,{error,by:by||null,at:now(),pid:null,origin:null,inflight:false});
+  if(t.auto){ t.attempt=t.attempt>0?t.attempt+1:1; Object.assign(t,{state:"reconnecting",nextAt:now()+backoff(t.attempt)*1e3}); announce(`${t.name} failed. Retrying in ${backoff(t.attempt)}s, attempt ${t.attempt}`); }
+  else { t.state="failed"; announce(`${t.name} failed: ${error}`); }
+  render();
+}
+function retryNow(t){ clearTimeout(t.timer); t.inflight=true; render(); t.timer=setTimeout(()=>settle(t),900+Math.random()*500); }
+function up(t){
+  const n=t.attempt; clearTimeout(t.timer); clearTimeout(t.stab);
+  Object.assign(t,{state:"active",pid:40000+Math.floor(Math.random()*20000),since:now(),origin:"app",error:null,by:null,attempt:0,inflight:false,note:null});
+  if(t.failSince) t.stab=setTimeout(()=>{ Object.assign(t,{failSince:null,failDays:0,skipped:0}); render(); },10e3); // archive clock resets after 10 s up
+  render(); n>0?toast(`${t.name} reconnected on attempt ${fmt(n)}`):announce(`${t.name} connected on localhost:${t.local}`);
+}
+function down(t,quiet){
+  const was=t.state, ext=t.origin==="terminal"&&was==="active"; stopT(t);
+  Object.assign(t,{state:"idle",pid:null,origin:null,attempt:0,inflight:false,note:null});
+  if(!quiet) toast(was==="reconnecting"?`Stopped retrying ${t.name}`:ext?`Stopped ${t.name} (Terminal session)`:`Disconnected ${t.name}`);
+  render();
+}
+function retry(t){
+  if(t.state==="reconnecting") return retryNow(t);
+  if(SYS[t.local]&&t.by===SYS[t.local]) delete SYS[t.local]; /* mock: pretend the user freed the port */ connect(t);
+}
+function fixPort(t){ const p=suggest(t.port,t); t.local=p; toast(`${t.name} now uses localhost:${p}`); failing(t)?connect(t):render(); }
+function applyAuto(t){ // auto on: a failed tunnel joins the retry loop; auto off: stop retrying
+  if(t.auto&&t.state==="failed") Object.assign(t,{state:"reconnecting",attempt:1,nextAt:now()+2e3});
+  else if(!t.auto&&t.state==="reconnecting"){ clearTimeout(t.timer); Object.assign(t,{state:"failed",inflight:false,attempt:0}); }
+}
+function toggleAuto(t){
+  t.auto=!t.auto; applyAuto(t); render();
+  const s=t.auto&&shown().find(x=>x!==t&&x.auto&&+x.local===+t.local);
+  if(s) return toast(`${s.name} also auto-connects on :${t.local}, so ${t.name} would fail at every launch.`,[`Use :${suggest(t.port,t)}`,()=>fixPort(t)]);
+  toast(t.auto?`${t.name} will connect at launch and reconnect if it drops`:`Auto-connect off for ${t.name}`);
+}
+function stopAll(onlyProd){
+  const ts=shown().filter(t=>busy(t)&&(!onlyProd||t.env==="prod")); ts.forEach(t=>down(t,true));
+  let n=ts.length; if(!onlyProd){ n+=unmanaged.length; unmanaged=[]; }
+  render(); toast(n?`Stopped ${n} ${onlyProd?"production ":""}session${n>1?"s":""}${ts.some(t=>t.auto)?" · auto tunnels reconnect at next launch":""}`:"Nothing to stop");
+}
+function del(t){
+  const i=tunnels.indexOf(t); if(i<0) return; if(busy(t)) down(t,true);
+  tunnels.splice(i,1); if(selId===t.id) selId=null; render();
+  toast(`Deleted ${t.name}`,["Undo",()=>{tunnels.splice(i,0,t);selId=t.id;render()}]);
+}
+/* ---------- auto-archive ---------- */
+function sweep(){
+  if(!cfg.archiveDays) return 0;
+  const gone=shown().filter(t=>failing(t)&&t.failDays>=cfg.archiveDays);
+  gone.forEach(t=>{ stopT(t); Object.assign(t,{archived:true,archivedAt:now(),state:"idle",inflight:false,attempt:0,notice:true}); if(selId===t.id) selId=null; });
+  if(gone.length){ render(); toast(`Auto-archived ${gone.map(t=>t.name).join(", ")} after ${cfg.archiveDays} failing days`,["Undo",()=>gone.forEach(t=>restore(t,true))]); }
+  return gone.length;
+}
+function restore(t,quiet){
+  Object.assign(t,{archived:false,notice:false,failDays:0,failSince:null,skipped:0,attempt:0,state:"idle",note:null});
+  render(); if(!quiet) toast(`Restored ${t.name} · failure clock restarted${t.auto?" · connects at next launch":""}`,["Connect Now",()=>connect(t)]);
+}
+function purge(t){ const i=tunnels.indexOf(t); tunnels.splice(i,1); render(); toast(`Deleted ${t.name} forever`,["Undo",()=>{tunnels.splice(i,0,t);render()}]); }
+function advanceDay(){ // mock: midnight passes
+  const f=shown().filter(t=>t.failSince&&failing(t)); // only rows that show the countdown chip
+  if(!f.length) return toast("A day passes · nothing is failing");
+  if(!shown().some(t=>t.state==="active")){ f.forEach(t=>t.skipped=(t.skipped||0)+1); render(); return toast("A day passes · not counted: every tunnel failed today"); }
+  f.forEach(t=>t.failDays++); render();
+  if(!sweep()) toast(`A day passes · ${f.map(t=>`${t.name} ${t.failDays}/${cfg.archiveDays||"∞"}`).join(", ")}`);
+}
+/* ---------- system events (mock) ---------- */
+function launch(login){ const au=shown().filter(t=>t.auto); au.forEach((t,i)=>connect(t,1200+i*350)); toast(`${login?"Opened at login":"Opened"} · connecting ${au.length} auto tunnel${au.length===1?"":"s"}`); }
+function restartMac(){
+  shown().forEach(t=>{ stopT(t); Object.assign(t,{state:"idle",pid:null,origin:null,inflight:false,attempt:0,note:null}); });
+  unmanaged=[]; offline=false; syncMock(); render();
+  if(!cfg.login) return toast("Mac restarted · Open at login is off, so nothing started",["Open App",()=>launch(false)]);
+  launch(true);
+}
+function wake(){
+  shown().filter(live).forEach(t=>{ stopT(t);
+    if(t.auto) Object.assign(t,{state:"reconnecting",attempt:Math.max(1,t.attempt),pid:null,origin:null,error:ERR.sleep,at:now()});
+    else Object.assign(t,{state:"idle",pid:null,origin:null,note:`Dropped during sleep · ${hm(now())}`}); });
+  unmanaged=[]; const re=shown().filter(t=>t.state==="reconnecting"); re.forEach(retryNow);
+  toast(re.length?`Woke from sleep · retrying ${re.length} auto tunnel${re.length>1?"s":""} now`:"Woke from sleep");
+}
+function setOffline(on){
+  offline=on; syncMock();
+  if(on){ shown().filter(busy).forEach(t=>{ stopT(t);
+      if(t.auto) Object.assign(t,{state:"reconnecting",attempt:1,nextAt:now()+2e3,error:ERR.net,pid:null,origin:null,inflight:false,at:now(),failSince:t.failSince||now()});
+      else Object.assign(t,{state:"idle",pid:null,origin:null,note:"Dropped: network lost"}); });
+    unmanaged=[]; render(); return toast("Network lost · auto tunnels keep retrying"); }
+  const re=shown().filter(t=>t.state==="reconnecting"); re.forEach(retryNow); toast(`Back online · retrying ${re.length} now`);
+}
+const syncMock=()=>$('[data-m="net"]').setAttribute("aria-pressed",offline);
+
+/* ---------- rendering ---------- */
+const ageHTML=t=>{const n=cfg.archiveDays; if(!n||!t.failDays) return "";
+  return `<b class="age" title="Auto-archives after ${n} failing days (${Math.max(0,n-t.failDays)} to go). Resets once it stays connected 10s. Days when every tunnel fails don't count."><span class="bar"><i style="width:${Math.min(100,t.failDays/n*100)}%"></i></span>Failing ${t.failDays} of ${n} days</b>`};
+function stHTML(t){
+  const s=t.state;
+  if(s==="active") return `<div class="st ok"><div class="l1"><span class="dot"></span>Connected · ${dur(t.since)}</div><div class="l2">PID ${t.pid}${t.origin==="terminal"?`<span class="badge ext" title="Started outside the app, detected via ps">${ic("term")}Terminal</span>`:""}</div></div>`;
+  if(s==="connecting") return `<div class="st busy"><div class="l1"><span class="spin" aria-hidden="true"></span>Connecting…</div><div class="l2">Starting SSM session</div></div>`;
+  if(s==="reconnecting") return `<div class="st re"><div class="l1">${t.inflight?'<span class="spin re" aria-hidden="true"></span>Reconnecting…':`${ic("loop")}<span>Retrying in <span data-cd="${t.id}">${secs(t)}s</span></span>`}</div><div class="l2">attempt ${fmt(t.attempt)}${t.failSince?` · since ${t.failDays?day(t.failSince):hm(t.failSince)}`:""}</div></div>`;
+  if(s==="failed") return `<div class="st err"><div class="l1">${ic("x")}Failed</div><div class="l2">${ago(t.at)}</div></div>`;
+  if(t.note) return `<div class="st note"><div class="l1">${esc(t.note)}</div></div>`;
+  const o=shown().find(x=>x!==t&&+x.local===+t.local);
+  return o?`<div class="st note"><div class="l1" title="Only one of these can run at a time">${ic("warn")}Shares :${t.local} with ${esc(o.name)}</div></div>`:`<div class="st"></div>`;
+}
+function stripHTML(t){
+  if(!failing(t)) return "";
+  const re=t.state==="reconnecting", port=/already in use/.test(t.error), tok=/ExpiredToken/.test(t.error||"");
+  const msg=port?`${esc(t.error)} by <b>${esc(t.by)}</b>.`:`<span class="eline">${esc(t.error)}</span>${tok?`<small>Your AWS login expired. Sign in again (e.g. <code>aws sso login</code>); the next retry picks it up.</small>`:""}`;
+  return `<div class="strip ${re?"re":"err"}">${ic(re?"loop":"x")}${ageHTML(t)}<span>${msg}</span>${tok?`<button class="btn sm" data-a="copysso" data-id="${t.id}">Copy Command</button>`:""}<button class="btn sm" data-a="retry" data-id="${t.id}">${re?"Retry Now":"Retry"}</button>${port?`<button class="btn sm" data-a="fixport" data-id="${t.id}">Use :${suggest(t.port,t)} instead</button>`:""}</div>`;
+}
+function rowHTML(t){
+  const [kl,ki]=kind(t), prod=t.env==="prod", s=t.state;
+  const words=s==="active"?`connected for ${dur(t.since)}`:s==="failed"?`failed, ${t.error}`:s==="reconnecting"?`reconnecting, attempt ${t.attempt}`:s;
+  return `<li class="row ${s}${prod?" prod":""}${t.id===selId?" sel":""}" data-row="${t.id}" tabindex="${t.id===selId?0:-1}" aria-label="${esc(`${t.name}, ${ENVS[t.env]}, localhost ${t.local}, ${words}${t.auto?", auto-connect":""}${t.failDays&&cfg.archiveDays?`, failing ${t.failDays} of ${cfg.archiveDays} days`:""}`)}">
+    <button class="port" data-a="copy" data-id="${t.id}" title="Copy localhost:${t.local}" aria-label="Copy localhost:${t.local}">:${t.local}</button>
+    <div class="mn"><div class="nm"><b>${esc(t.name)}</b>${prod?`<span class="badge prod" title="Production — live data">PROD</span>`:""}<span class="kind">${ic(ki)}${kl}</span></div>
+      <div class="sub2">${esc(t.desc)}${t.desc?" · ":""}<span class="mono">${esc(t.host)}:${t.port}</span></div></div>
+    ${stHTML(t)}
+    <button class="auto" aria-pressed="${!!t.auto}" data-a="auto" data-id="${t.id}" aria-label="Auto-connect ${esc(t.name)}" title="Auto-connect: connect at launch and reconnect if it drops (A)">${ic("loop")}Auto</button>
+    <button class="sw" role="switch" aria-checked="${s==="active"?"true":s==="connecting"||s==="reconnecting"?"mixed":"false"}" data-a="toggle" data-id="${t.id}" aria-label="${esc(t.name)} tunnel" title="${s==="active"?"Disconnect":s==="connecting"?"Cancel":s==="reconnecting"?"Stop retrying":"Connect"} (Space)"></button>
+    <button class="more" data-a="more" data-id="${t.id}" aria-haspopup="menu" aria-label="More actions for ${esc(t.name)}">${ic("dots")}</button>
+    ${stripHTML(t)}</li>`;
+}
+const detHTML=u=>`<div class="det">${ic("term")}<div style="min-width:0"><b>Running in Terminal, not saved</b>
+  <div class="sub2"><span class="mono">localhost:${u.local} → ${esc(u.host)}:${u.port}</span></div>
+  <div class="sub2">PID ${u.pid} · up ${dur(u.since)} · ${shortId(u.target)} · ${u.region}</div></div>
+  <button class="btn sm" data-a="adopt" data-u="${u.id}">Save as Tunnel…</button><button class="btn sm" data-a="kill" data-u="${u.id}">Stop</button></div>`;
+function noticeHTML(){
+  const nt=tunnels.filter(t=>t.archived&&t.notice); if(!nt.length) return "";
+  const one=nt.length===1&&nt[0];
+  return `<div class="notice" role="status">${ic("archive")}<div style="min-width:0"><b>Auto-archived ${esc(nt.map(t=>t.name).join(", "))}</b>
+    <div class="sub2">${one?`Failed ${one.failDays} days in a row · last error: <span class="mono">${esc(one.error)}</span>`:`Each failed ${cfg.archiveDays}+ days in a row.`}</div>
+    <div class="sub2">Hidden from the list and menu bar, kept in storage.</div></div>
+    <button class="btn sm" data-a="archived">Show Archived</button>${one?`<button class="btn sm" data-a="restore" data-id="${one.id}">Restore</button>`:"<span></span>"}
+    <button class="btn sm ic" data-a="dismiss" aria-label="Dismiss" title="Dismiss">${ic("x")}</button></div>`;
+}
+function archHTML(){
+  const a=archived().filter(matchQ);
+  let h=`<div class="ainfo">${ic("archive")}<span>Archived tunnels never auto-connect and are hidden from the list and menu bar. <b>Restore</b> brings one back and restarts its failure clock.</span></div>`;
+  if(!a.length) return h+`<div class="empty">${ic("check")}${query?`No archived tunnels match “${esc(query)}”.`:"Nothing archived."}</div>`;
+  return h+`<ul class="rows">${a.map(t=>{const [kl,ki]=kind(t);return `<li class="arow${t.env==="prod"?" prod":""}">
+    <span class="port">:${t.local}</span>
+    <div class="mn"><div class="nm"><b>${esc(t.name)}</b>${t.env==="prod"?'<span class="badge prod">PROD</span>':""}<span class="kind">${ic(ki)}${kl}</span>${t.auto?`<span class="kind">${ic("loop")}was Auto</span>`:""}</div>
+      <div class="sub2">Archived ${ago(t.archivedAt)} · failing since ${day(t.failSince)} · ${t.failDays} counted days${t.skipped?`, ${t.skipped} not counted (every tunnel down)`:""}</div>
+      <span class="eline">${esc(t.error||"")}</span></div>
+    <button class="btn sm" data-a="restore" data-id="${t.id}" title="Back to the list; failure clock restarts">Restore</button>
+    <button class="btn sm red" data-a="purge" data-id="${t.id}">Delete Forever</button></li>`}).join("")}</ul>`;
+}
+function impSuggest(x){ let p={5432:1430,6379:6370,443:1443}[x.port]||x.port+10000; while(imp.some(y=>y.local===p)||SYS[p]) p++; return p; }
+function firstHTML(){
+  if(!imp) imp=RAW.map(r=>({name:r[0],port:r[4],local:r[5],env:inferEnv(r[0])}));
+  const clashing=x=>imp.some(y=>y!==x&&y.local===x.local), other=imp.filter(x=>x.env==="other").length;
+  const notes=imp.filter((x,i)=>imp.findIndex(y=>y.local===x.local)<i).map(x=>{ const y=imp.find(z=>z.local===x.local);
+      return `<div class="note w">${ic("warn")}<span>${y.name} and ${x.name} both use local port :${x.local}, so only one can run at a time. If both are set to Auto-connect, ${x.name} would fail at every launch.</span><button class="btn sm" data-a="impFix" data-i="${imp.indexOf(x)}">Use :${impSuggest(x)} for ${x.name}</button></div>`; }).join("")
+    +imp.filter(x=>x.moved).map(x=>`<div class="note ok">${ic("check")}<span>${x.name} will use :${x.local} (was :${x.moved}).</span></div>`).join("");
+  return `<div class="first"><div class="appicon">${ic("tunnel")}</div><h2>Set up your tunnels</h2>
+  <p>Save each SSM port-forward once, then connect with a click. Sessions you start in Terminal show up here automatically.</p>
+  <div class="imp"><div class="imp-hd">${ic("term")}<span><b>Found your ssm-connect script</b><br><span class="mono">${SCRIPT}</span></span><span class="sp"></span><b>${imp.length} tunnels</b></div>
+  <ul>${imp.map(x=>`<li class="${clashing(x)?"clash":""}"><span class="mono">${x.name}</span><span class="mono">:${x.local}</span><span class="env ${x.env}">${ENVS[x.env]}</span></li>`).join("")}</ul>
+  ${notes}
+  <div class="note">${ic("shield")}<span>Environment is guessed from “-prod” / “-stg” in the name. ${other} tunnels will be marked Other; review whether they touch production.</span></div></div>
+  <div class="btns"><button class="btn pri" data-a="import">Import ${imp.length} Tunnels</button><button class="btn" data-a="add">Add Manually…</button></div>
+  <p class="foot">Stored in <span class="mono">~/Library/Application Support/SSM Tunnels/connections.json</span></p></div>`;
+}
+function listHTML(){
+  if(!tunnels.length) return firstHTML();
+  if(view==="archived") return archHTML();
+  const v=visible(); let h=query?"":noticeHTML();
+  if(unmanaged.length&&(view==="all"||view==="active")&&!query) h+=unmanaged.map(detHTML).join("");
+  if(!v.length) return h+(query?`<div class="empty">${ic("search")}No tunnels match “${esc(query)}”.<br><br><button class="btn sm" data-a="clearq">Clear Search</button></div>`
+    :`<div class="empty">${ic(view==="attn"?"check":"ring")}${view==="attn"?"Nothing needs attention.":"No tunnels here."}</div>`);
+  for(const e of Object.keys(ENVS)){
+    const g=v.filter(t=>t.env===e); if(!g.length) continue;
+    const n=g.filter(t=>t.state==="active").length, au=g.filter(t=>t.auto).length;
+    h+=`<section aria-label="${ENVS[e]}"><div class="sec ${e}"><h2>${e==="prod"?ic("shield"):""}${ENVS[e]}</h2><span class="meta">${g.length} · ${n} connected${au?` · ${au} auto`:""}${e==="prod"?" · live data":""}</span></div><ul class="rows">${g.map(rowHTML).join("")}</ul></section>`;
+  }
+  return h;
+}
+function sideHTML(){
+  const S=shown(), c=f=>S.filter(f).length;
+  const item=(id,icon,label,n,cls="")=>`<button data-a="view" data-v="${id}" class="${cls}"${view===id?' aria-current="page"':""}>${ic(icon)}${label}<span class="n">${n||""}</span></button>`;
+  const bast=[...new Set(S.map(t=>t.target))].map(b=>{const r=S.find(t=>t.target===b).region;
+    return item(b,"server",`<span class="lb"><span class="mono" title="${b}">${shortId(b)}</span><small>${r}</small></span>`,c(t=>t.target===b),"two")}).join("");
+  return `<h3>Tunnels</h3>${item("all","list","All Tunnels",S.length)}${item("active","bolt","Connected",c(t=>t.state==="active")+unmanaged.length,"ok")}${item("attn","warn","Needs Attention",c(failing),"attn")}
+    <h3>Environment</h3>${item("prod","shield","Production",c(t=>t.env==="prod"),"prod")}${item("stg","flask","Staging",c(t=>t.env==="stg"))}${item("other","ring","Other",c(t=>t.env==="other"))}
+    ${bast?`<h3>Bastions</h3>${bast}`:""}`;
+}
+function popHTML(){
+  const S=shown(), pl=prodLive(), hot=S.filter(t=>busy(t)||t.state==="failed"), cold=S.filter(t=>!hot.includes(t)), nt=tunnels.filter(t=>t.archived&&t.notice);
+  const n=S.filter(t=>t.state==="active").length+unmanaged.length;
+  const sub=t=>t.state==="active"?`${dur(t.since)} · PID ${t.pid}${t.origin==="terminal"?" · Terminal":""}`:t.state==="connecting"?"Connecting…"
+    :t.state==="reconnecting"?(t.inflight?"Reconnecting…":`Retrying in <span data-cd="${t.id}">${secs(t)}s</span> · attempt ${fmt(t.attempt)}`):t.state==="failed"?esc(t.error):esc(t.note||t.desc);
+  const ctl=t=>failing(t)?`<button class="btn sm" data-a="retry" data-id="${t.id}">${t.state==="reconnecting"?"Retry Now":"Retry"}</button>`
+    :`<button class="sw" role="switch" aria-checked="${t.state==="active"?"true":t.state==="connecting"?"mixed":"false"}" data-a="toggle" data-id="${t.id}" aria-label="${esc(t.name)} tunnel"></button>`;
+  const r=t=>`<div class="prow ${t.state}"><span class="dot" aria-hidden="true"></span><span style="min-width:0"><span class="pt"><b>${esc(t.name)}</b>${t.env==="prod"?'<span class="badge prod">PROD</span>':""}${t.auto?`<span class="am" title="Auto-connect">${ic("loop")}<span class="vh">auto</span></span>`:""}</span><small>${sub(t)}</small></span><span class="port-s">:${t.local}</span>${ctl(t)}</div>`;
+  return `<div class="pop-hd"><b>SSM Tunnels</b><span class="sub">${n} connected</span></div>
+    ${offline?`<div class="pop-warn e">${ic("warn")}<span class="sp"><b>No network</b> · every tunnel is failing</span></div>`:""}
+    ${pl.length?`<div class="pop-warn">${ic("shield")}<span class="sp"><b>${pl.length} production live</b></span><button class="btn sm" data-a="discProd">Disconnect</button></div>`:""}
+    ${nt.length?`<div class="pop-note">${ic("archive")}<span class="sp">${nt.length===1?esc(nt[0].name)+" was":nt.length+" tunnels were"} auto-archived</span><button class="btn sm ghost" data-a="archived">View</button></div>`:""}
+    ${unmanaged.length?`<div class="pop-note">${ic("term")}<span class="sp">${unmanaged.length} unsaved Terminal session${unmanaged.length>1?"s":""}</span><button class="btn sm ghost" data-a="openApp">Review</button></div>`:""}
+    <div class="pop-list">${hot.length?`<h4>Active</h4>${hot.map(r).join("")}`:""}${cold.length?`<h4>Saved</h4>${cold.map(r).join("")}`:""}${S.length?"":`<p class="sub" style="padding:8px">No tunnels yet.</p>`}</div>
+    <div class="pop-ft"><button class="btn sm" data-a="disconnectAll">Disconnect All</button><span class="sp"></span><button class="btn sm ic" data-a="settings" aria-label="Settings" title="Settings (,)">${ic("gear")}</button><button class="btn sm" data-a="openApp">Open SSM Tunnels</button></div>`;
+}
+const sideActHTML=()=>`<button class="link" data-a="archived"${view==="archived"?' aria-current="page"':""}>${ic("archive")}Archived (${archived().length})</button><span class="sp"></span><button class="link" data-a="settings" title="Settings (,)">${ic("gear")}Settings</button>`;
+function render(){
+  const a=document.activeElement, root=a&&a.closest?a.closest("#list,#pop,#side,#banner,#sideAct"):null;
+  let sel=null;
+  if(root&&a!==root){ const d=a.dataset; sel=d.row?`[data-row="${d.row}"]`:d.a?["a","id","v","u","i"].filter(k=>d[k]!=null).map(k=>`[data-${k}="${d[k]}"]`).join(""):null; }
+  const list=$("#list"), top=list.scrollTop, S=shown(), cnt=f=>S.filter(f).length, arch=view==="archived";
+  const nA=cnt(t=>t.state==="active")+unmanaged.length, nC=cnt(t=>t.state==="connecting"), nR=cnt(t=>t.state==="reconnecting"), nF=cnt(t=>t.state==="failed"), pl=prodLive();
+  $("#side").innerHTML=sideHTML();
+  $("#title").textContent=viewLabel();
+  $("#subtitle").textContent=arch?`${archived().length} archived · kept in storage, never auto-connect`:tunnels.length?[`${nA} connected`,nC&&`${nC} connecting`,nR&&`${nR} reconnecting`,nF&&`${nF} failed`,`${S.length} saved`].filter(Boolean).join(" · "):"No tunnels saved yet";
+  $("#banner").innerHTML=arch?"":(offline?`<div class="banner off">${ic("warn")}<span><b>Every tunnel is failing</b> (no network). Auto tunnels keep retrying and reconnect as soon as you’re back online. Today won’t count toward auto-archive.</span></div>`:"")
+    +(pl.length?`<div class="banner">${ic("shield")}<span><b>${pl.length} production tunnel${pl.length>1?"s":""} live</b> — ${pl.map(t=>esc(t.name)).join(", ")}</span><span class="sp"></span><button class="btn sm" data-a="showProd">Show</button><button class="btn sm" data-a="discProd">Disconnect Production</button></div>`:"");
+  list.innerHTML=listHTML(); list.scrollTop=top;
+  $("#tbActs").hidden=arch; $("#bBack").hidden=!arch;
+  $("#bAll").disabled=!S.some(t=>!busy(t)); $("#bNone").disabled=!S.some(busy)&&!unmanaged.length;
+  $("#sideAct").hidden=!tunnels.length; $("#sideAct").innerHTML=sideActHTML();
+  const tray=$("#tray"); tray.className="tray"+(pl.length?" prod":"");
+  tray.innerHTML=`${ic("tunnel")}<span>${nA||""}</span>${nF+nR?'<i class="tdot"></i>':""}`;
+  tray.setAttribute("aria-label",`SSM Tunnels: ${nA} connected${pl.length?`, ${pl.length} production`:""}${nR?`, ${nR} reconnecting`:""}${nF?`, ${nF} failed`:""}`);
+  $("#pop").innerHTML=popHTML();
+  if(sel){ const el=$(sel,root); if(el) el.focus({preventScroll:true}); }
+}
+function select(id,focus){
+  selId=id;
+  $$("#list .row").forEach(r=>{const on=+r.dataset.row===id; r.classList.toggle("sel",on); r.tabIndex=on?0:-1; if(on&&focus) r.focus({preventScroll:true});});
+}
+function move(d){
+  const rows=$$("#list .row"); if(!rows.length) return;
+  let i=rows.findIndex(r=>+r.dataset.row===selId);
+  i=i<0?(d>0?0:rows.length-1):Math.max(0,Math.min(rows.length-1,i+d));
+  select(+rows[i].dataset.row,true); rows[i].scrollIntoView({block:"nearest"});
+}
+
+/* ---------- feedback ---------- */
+let tt; function toast(msg,act){
+  const el=$("#toast"); el.innerHTML=`<span>${esc(msg)}</span>`+(act?`<button type="button">${esc(act[0])}</button>`:"");
+  if(act) el.querySelector("button").onclick=()=>{el.classList.remove("show");act[1]()};
+  el.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove("show"),act?6000:2400); announce(msg);
+}
+function announce(m){ const l=$("#live"); l.textContent=""; setTimeout(()=>l.textContent=m,40); }
+async function copy(text,label,btn){
+  try{ await navigator.clipboard.writeText(text); }catch(_){ /* file:// may reject; the real app uses Electron's clipboard */ }
+  if(btn){ const o=btn.textContent; btn.textContent="Copied"; setTimeout(()=>btn.textContent=o,1200); } else toast(`Copied ${label||text}`);
+}
+
+/* ---------- menus, popover, sheets ---------- */
+function openMenu(t,at){
+  const kl=kind(t)[0], cli=kl==="PostgreSQL"?`psql -h localhost -p ${t.local}`:kl==="MySQL"?`mysql -h 127.0.0.1 -P ${t.local}`:/Redis|Valkey/.test(kl)?`redis-cli -p ${t.local}`:`https://localhost:${t.local}`;
+  const it=(a,l,k="",x="")=>`<button role="menuitem" data-a="${a}" data-id="${t.id}"${x}>${l}<kbd>${k}</kbd></button>`;
+  const m=$("#menu");
+  m.innerHTML=it("toggle",t.state==="reconnecting"?"Stop Retrying":live(t)?"Disconnect":"Connect","Space")+(failing(t)?it("retry",t.state==="reconnecting"?"Retry Now":"Retry","R"):"")
+    +`<button role="menuitemcheckbox" aria-checked="${!!t.auto}" data-a="auto" data-id="${t.id}"><span class="ck">${t.auto?ic("check"):""}</span>Auto-connect<kbd>A</kbd></button><hr>`
+    +it("copy",`Copy localhost:${t.local}`,"C")+it("copycli",`Copy “${esc(cli.split(" ")[0])}” command`,"",` data-text="${esc(cli)}"`)+it("copyaws","Copy aws command")+"<hr>"
+    +it("edit","Edit…","E")+it("dup","Duplicate…","D")+"<hr>"+it("del",`Delete “${esc(t.name)}”`,"⌫",' class="danger"');
+  menuFrom=at instanceof Element?at:document.activeElement; m.hidden=false;
+  const r=at instanceof Element?at.getBoundingClientRect():{left:at.x,right:at.x,top:at.y,bottom:at.y}, w=m.offsetWidth, h=m.offsetHeight;
+  let x=at instanceof Element?r.right-w:r.left, y=r.bottom+4; if(y+h>innerHeight-8) y=r.top-h-4;
+  m.style.left=Math.max(8,Math.min(innerWidth-w-8,x))+"px"; m.style.top=Math.max(8,y)+"px";
+  $("button",m).focus();
+}
+function closeMenu(restore){ const m=$("#menu"); if(m.hidden) return; m.hidden=true; if(restore&&menuFrom&&menuFrom.isConnected) menuFrom.focus(); }
+function togglePop(force){
+  const p=$("#pop"), open=force??!popOpen; if(open===popOpen) return; popOpen=open; p.hidden=!open;
+  $("#tray").setAttribute("aria-expanded",open); $$('[data-m="pop"]').forEach(b=>b.setAttribute("aria-pressed",open));
+  if(open){ const r=$("#tray").getBoundingClientRect(); p.style.left=Math.max(8,Math.min(innerWidth-348,r.left+r.width/2-170))+"px"; const f=$("button",p); if(f) f.focus(); }
+  else if(p.contains(document.activeElement)) $("#tray").focus();
+}
+function showSheet(d){
+  closeMenu(); togglePop(false); d.showModal();
+  const m=$(".main").getBoundingClientRect(), top=Math.max(12,m.top+44);
+  d.style.top=top+"px"; d.style.maxHeight=(innerHeight-top-12)+"px";
+  d.style.left=Math.max(12,Math.min(innerWidth-d.offsetWidth-12,m.left+m.width/2-d.offsetWidth/2))+"px";
+}
+function plan(){
+  const held=new Map(); tunnels.filter(live).forEach(t=>held.set(+t.local,t.name));
+  unmanaged.forEach(u=>held.set(+u.local,`Terminal session (PID ${u.pid})`)); Object.entries(SYS).forEach(([p,l])=>held.set(+p,l));
+  const go=[],skip=[];
+  visible().filter(t=>!busy(t)).forEach(t=>{const h=held.get(+t.local); if(h) skip.push([t,h]); else {held.set(+t.local,t.name); go.push(t);}});
+  return {go,skip};
+}
+function openAll(){
+  if(!shown().some(t=>!busy(t))) return; const p=plan();
+  $("#aSub").textContent=`Idle tunnels in “${viewLabel()}”`;
+  $("#aBody").innerHTML=`<div class="ca"><div class="ca-h">${ic("play")}<b>Will connect ${p.go.length}</b></div><div class="tags">${p.go.map(t=>`<span class="tag${t.env==="prod"?" prod":""}">${esc(t.name)} <span class="mono">:${t.local}</span></span>`).join("")||'<span class="sub">Nothing to connect.</span>'}</div></div>
+    ${p.skip.length?`<div class="ca skip"><div class="ca-h">${ic("warn")}<b>Skipping ${p.skip.length}</b> because the local port is already taken</div>${p.skip.map(([t,h])=>`<div><span class="mono">${esc(t.name)} :${t.local}</span> is held by ${esc(h)}</div>`).join("")}</div>`:""}`;
+  const g=$("#aGo"); g.textContent=p.go.length?`Connect ${p.go.length}`:"Connect"; g.disabled=!p.go.length;
+  showSheet($("#dAll")); g.focus();
+}
+$("#aGo").onclick=()=>{ const p=plan(); $("#dAll").close(); p.go.forEach(t=>connect(t)); toast(`Connecting ${p.go.length} tunnel${p.go.length>1?"s":""}`); };
+function drawSet(){
+  const au=shown().filter(t=>t.auto);
+  $("#sLogin").setAttribute("aria-checked",cfg.login); $("#sArch").value=cfg.archiveDays;
+  $("#sAuto").innerHTML=au.length?au.map(t=>`<span class="tag${t.env==="prod"?" prod":""}">${ic("loop")} ${esc(t.name)} <span class="mono">:${t.local}</span></span>`).join(""):'<span class="sub">No tunnels are marked Auto yet. Use the Auto button on any row.</span>';
+}
+function openSet(){ drawSet(); showSheet($("#dSet")); $("#sLogin").focus(); }
+$("#sArch").onchange=e=>{ cfg.archiveDays=+e.target.value; render(); sweep(); };
+
+/* ---------- add / edit form ---------- */
+let ed=null, adoptU=null, envVal="other", autoVal=false, envTouched=false, localTouched=false, touched=new Set(), submitted=false;
+function fd(){ const v=s=>$(s).value.trim(), b=$("#iBastion").value;
+  return {name:v("#iName"),desc:v("#iDesc"),target:b==="other"?v("#iTarget"):b,region:$("#iRegion").value,host:v("#iHost"),port:+v("#iPort"),local:+v("#iLocal"),env:envVal,auto:autoVal}; }
+function fillBastions(target,region){
+  const known=[...new Set(tunnels.map(t=>t.target))], s=$("#iBastion");
+  s.innerHTML=known.map(b=>{const n=tunnels.filter(t=>t.target===b).length;return `<option value="${b}">${b}  ·  used by ${n} tunnel${n>1?"s":""}</option>`}).join("")+`<option value="other">Other instance…</option>`;
+  s.value=known.includes(target)?target:"other"; $("#iTarget").value=target||""; $("#iRegion").value=region; syncBastion(false);
+}
+function syncBastion(user){
+  const v=$("#iBastion").value, k=v!=="other";
+  $("#fTarget").hidden=k; $("#iRegion").disabled=k; // known bastion ⇒ region is implied, can't mismatch
+  if(k) $("#iRegion").value=tunnels.find(t=>t.target===v).region; else if(user){ $("#iTarget").value=""; $("#iTarget").focus(); }
+  check();
+}
+function check(){
+  const d=fd(), E={};
+  if(!d.name) E.name="Required"; else if(!/^[a-z0-9][a-z0-9._-]*$/.test(d.name)) E.name="Use lowercase letters, digits, - . _";
+  else { const dup=tunnels.find(t=>t!==ed&&t.name===d.name); if(dup) E.name=`“${d.name}” already exists${dup.archived?" (archived)":""}`; }
+  if(!/^i-[0-9a-f]{8,17}$/.test(d.target)) E.target="Expected an EC2 instance ID like i-0357e26df0d26b2ae";
+  if(!d.host) E.host="Required";
+  if(!(d.port>0&&d.port<65536)) E.port="Enter a port from 1 to 65535";
+  let lm="Free on this Mac", lc="ok", fix=false;
+  if(!(d.local>0&&d.local<65536)){ lm=E.local="Enter a port from 1 to 65535"; lc="err"; }
+  else { const o=owner(d.local,ed,adoptU), s=shown().find(t=>t!==ed&&+t.local===d.local);
+    if(o){ lm=`In use right now by ${o.label}. Connecting will fail.`; lc="err"; fix=true; }
+    if(s){ fix=true;
+      if(d.auto&&s.auto){ lm=`${s.name} also uses :${d.local} and auto-connects. With both on, ${d.name||"this tunnel"} fails at every launch and retries forever.`; lc="err"; }
+      else if(!o){ lm=`Also assigned to ${s.name}. The two can’t run at the same time.`; lc="warn"; } } }
+  const show=k=>submitted||touched.has(k);
+  ["name","target","host","port"].forEach(k=>{ const m=$("#m"+k[0].toUpperCase()+k.slice(1)), bad=show(k)&&E[k]; m.textContent=bad||""; $(`[data-f="${k}"]`).classList.toggle("bad",!!bad); });
+  const ml=$("#mLocal"); ml.textContent=(lc==="ok"?"✓ ":"")+lm; ml.className="msg "+lc;
+  const bf=$("#bFix"); bf.hidden=!fix||!(d.port>0); if(fix) bf.textContent=`Use :${suggest(d.port,ed)}`;
+  $$("#envSeg button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.env===envVal));
+  $("#iAuto").setAttribute("aria-checked",autoVal);
+  $("#mEnv").textContent=envVal==="prod"?"Marked PROD in lists and the menu bar. Connects like any other tunnel.":"";
+  $("#cmd").innerHTML=`aws ssm start-session \\\n  --region <b>${esc(d.region)}</b> \\\n  --target <b>${esc(d.target||"i-…")}</b> \\\n  --document-name AWS-StartPortForwardingSessionToRemoteHost \\\n  --parameters host=<b>${esc(d.host||"<host>")}</b>,portNumber=<b>${d.port||"?"}</b>,localPortNumber=<b>${d.local||"?"}</b>`;
+  return {E,d};
+}
+function openForm(mode,t,u){
+  ed=mode==="edit"?t:null; adoptU=u||null; touched=new Set(); submitted=false;
+  envTouched=mode==="edit"||mode==="dup"; localTouched=mode==="edit"||mode==="adopt";
+  const src=t||u||{region:"us-west-2",target:B1,host:"",port:5432,desc:"",name:"",env:"other"};
+  $("#fTitle").textContent={new:"New Tunnel",edit:`Edit “${t&&t.name}”`,dup:`Duplicate “${t&&t.name}”`,adopt:"Save Terminal Session"}[mode];
+  $("#fSub").textContent=mode==="adopt"?`PID ${u.pid} keeps running and becomes a saved tunnel the app manages.`:ed&&live(ed)?"This tunnel is running. Connection changes apply after you reconnect.":"Saved to connections.json. No terminal needed.";
+  $("#iName").value=mode==="dup"?src.name+"-copy":mode==="adopt"?"":src.name;
+  $("#iDesc").value=src.desc||""; $("#iHost").value=src.host; $("#iPort").value=src.port;
+  $("#iLocal").value=mode==="new"||mode==="dup"?suggest(src.port,null):src.local;
+  envVal=src.env||"other"; autoVal=mode==="edit"?!!t.auto:mode==="dup"?!!t.auto:false; fillBastions(src.target,src.region);
+  $("#bDel").hidden=mode!=="edit"; $("#bSaveGo").hidden=mode==="adopt"||!!(ed&&live(ed));
+  check(); showSheet($("#dForm")); $("#iName").focus();
+}
+function save(go){
+  submitted=true; const {E,d}=check(), bad=Object.keys(E)[0];
+  if(bad) return $({name:"#iName",target:"#iTarget",host:"#iHost",port:"#iPort",local:"#iLocal"}[bad]).focus();
+  let t=ed, changed=false;
+  if(t){ changed=live(t)&&["target","region","host","port","local"].some(k=>t[k]!=d[k]); Object.assign(t,d); applyAuto(t); }
+  else { t=make([d.name,d.region,d.target,d.host,d.port,d.local,d.desc,d.env],d.auto); tunnels.push(t);
+    if(adoptU){ Object.assign(t,{state:"active",pid:adoptU.pid,since:adoptU.since,origin:"terminal"}); unmanaged=unmanaged.filter(x=>x!==adoptU); } }
+  $("#dForm").close(); selId=t.id;
+  if(!visible().includes(t)){ view="all"; query=""; $("#q").value=""; }
+  if(go&&!live(t)) connect(t); else render();
+  toast(changed?`Saved. Reconnect ${t.name} to apply.`:`Saved ${t.name}${d.auto&&!busy(t)?" · auto-connects at next launch":""}`,changed?["Reconnect",()=>{down(t,true);connect(t)}]:null);
+}
+$("#form").addEventListener("input",e=>{
+  const f=e.target.closest("[data-f]"); if(f) touched.add(f.dataset.f);
+  if(e.target.id==="iName"&&!envTouched) envVal=inferEnv(e.target.value);
+  if(e.target.id==="iLocal") localTouched=true;
+  if(e.target.id==="iPort"&&!localTouched&&+e.target.value) $("#iLocal").value=suggest(+e.target.value,ed);
+  check();
+});
+$("#iBastion").onchange=()=>syncBastion(true); $("#iRegion").onchange=check;
+$("#envSeg").onclick=e=>{ const b=e.target.closest("[data-env]"); if(!b) return; envVal=b.dataset.env; envTouched=true; check(); };
+$("#iAuto").onclick=()=>{ autoVal=!autoVal; check(); };
+$("#presets").onclick=e=>{ const b=e.target.closest("[data-p]"); if(!b) return; $("#iPort").value=b.dataset.p; touched.add("port"); if(!localTouched) $("#iLocal").value=suggest(+b.dataset.p,ed); check(); };
+$("#bSuggest").onclick=()=>{ $("#iLocal").value=suggest(+$("#iPort").value||5432,ed); localTouched=true; check(); };
+$("#bFix").onclick=()=>{ $("#iLocal").value=suggest(+$("#iPort").value,ed); localTouched=true; check(); $("#iLocal").focus(); };
+$("#bCopyCmd").onclick=e=>copy(awsCmd(fd()),"",e.currentTarget);
+$("#bCancel").onclick=()=>$("#dForm").close();
+$("#bDel").onclick=()=>{ const t=ed; $("#dForm").close(); del(t); };
+$("#form").onsubmit=e=>{ e.preventDefault(); save(false); };
+$("#bSaveGo").onclick=()=>save(true);
+
+/* ---------- events ---------- */
+function act(a,t,b){
+  switch(a){
+    case "toggle": return t&&toggle(t);
+    case "auto": return t&&toggleAuto(t);
+    case "retry": return t&&retry(t);
+    case "fixport": return t&&fixPort(t);
+    case "copy": return copy(`localhost:${t.local}`);
+    case "copycli": return copy(b.dataset.text);
+    case "copyaws": return copy(awsCmd(t),"aws command");
+    case "copysso": return copy("aws sso login");
+    case "more": return openMenu(t,b);
+    case "edit": return openForm("edit",t);
+    case "dup": return openForm("dup",t);
+    case "del": return del(t);
+    case "view": view=b.dataset.v; query=""; $("#q").value=""; return render();
+    case "showProd": view="prod"; return render();
+    case "discProd": return stopAll(true);
+    case "add": return openForm("new");
+    case "connectAll": return openAll();
+    case "disconnectAll": return stopAll(false);
+    case "archived": togglePop(false); view="archived"; query=""; $("#q").value=""; tunnels.forEach(x=>x.notice=false); render(); return $("#bBack").focus();
+    case "dismiss": tunnels.forEach(x=>x.notice=false); return render();
+    case "restore": return t&&restore(t);
+    case "purge": return t&&purge(t);
+    case "settings": return openSet();
+    case "login": cfg.login=!cfg.login; drawSet(); render(); return announce(`Open at login ${cfg.login?"on":"off"}`);
+    case "impFix": { const x=imp[+b.dataset.i]; x.moved=x.local; x.local=impSuggest(x); render(); return $('[data-a="import"]').focus(); }
+    case "adopt": return openForm("adopt",null,unmanaged.find(u=>u.id===+b.dataset.u));
+    case "kill": { const u=unmanaged.find(x=>x.id===+b.dataset.u); unmanaged=unmanaged.filter(x=>x!==u); render(); return toast(`Stopped Terminal session (PID ${u.pid})`); }
+    case "tray": return togglePop();
+    case "openApp": togglePop(false); view="all"; render(); { const r=$("#list .row,#list .det button"); if(r) r.focus(); } return;
+    case "clearq": query=""; $("#q").value=""; render(); return $("#q").focus();
+    case "import": SYS={...SYS0}; tunnels=imp.map((x,i)=>make([...RAW[i].slice(0,5),x.local,RAW[i][6],x.env])); imp=null; view="all"; render(); return toast(`Imported ${RAW.length} tunnels from ssm-connect`);
+  }
+}
+function mock(m){
+  const need=()=>{ if(!tunnels.length) toast("Load sample data first"); return !tunnels.length; };
+  if(m==="seed"){ seed(); view="all"; query=""; $("#q").value=""; syncMock(); render(); return toast("Sample data restored"); }
+  if(m==="first"){ tunnels.forEach(stopT); tunnels=[]; unmanaged=[]; imp=null; offline=false; syncMock(); view="all"; return render(); }
+  if(m==="pop") return togglePop();
+  if(m==="keys") return showSheet($("#dKeys"));
+  if(need()) return;
+  if(m==="ext"){ const t=tunnels.find(x=>x.name==="zephyr-prod"&&!x.archived); if(!t) return toast("zephyr-prod not found");
+    if(!busy(t)) Object.assign(t,{state:"active",pid:53110,since:now(),origin:"terminal",error:null,note:null}); render(); return toast("Detected zephyr-prod started in Terminal (PID 53110)"); }
+  if(m==="raw"){ unmanaged.push({id:++uid,region:"us-west-2",target:B1,host:"master.glacier-cache-stg.28i723.usw2.cache.amazonaws.com",port:6379,local:16378+unmanaged.length,pid:53377+unmanaged.length,since:now()}); render(); return toast("Detected an unsaved aws ssm session"); }
+  if(m==="boot") return restartMac();
+  if(m==="wake") return wake();
+  if(m==="net") return setOffline(!offline);
+  if(m==="day") return advanceDay();
+}
+document.addEventListener("click",e=>{
+  const c=e.target.closest("[data-close]"); if(c) return c.closest("dialog").close();
+  const m=e.target.closest("[data-m]"); if(m) return mock(m.dataset.m);
+  const th=e.target.closest("[data-theme-set]");
+  if(th){ const v=th.dataset.themeSet; v==="auto"?document.documentElement.removeAttribute("data-theme"):document.documentElement.setAttribute("data-theme",v);
+    return $$("[data-theme-set]").forEach(x=>x.setAttribute("aria-pressed",x===th)); }
+  const b=e.target.closest("[data-a]"), inMenu=!!e.target.closest("#menu");
+  if(inMenu) closeMenu(true); else if(!(b&&b.dataset.a==="more")) closeMenu();
+  if(popOpen&&!e.target.closest("#pop,#tray")) togglePop(false);
+  const row=e.target.closest("[data-row]"); if(row) select(+row.dataset.row,!b);
+  if(b) act(b.dataset.a,byId(+b.dataset.id),b);
+});
+$("#list").addEventListener("contextmenu",e=>{ const r=e.target.closest("[data-row]"); if(!r) return; e.preventDefault(); select(+r.dataset.row); openMenu(byId(+r.dataset.row),{x:e.clientX,y:e.clientY}); });
+$("#q").addEventListener("input",e=>{ query=e.target.value; render(); });
+document.addEventListener("keydown",e=>{
+  if($("dialog[open]")) return; // native dialogs handle Esc + focus
+  const m=$("#menu");
+  if(!m.hidden){ const items=$$("button",m), i=items.indexOf(document.activeElement);
+    if(e.key==="Escape"){ e.preventDefault(); closeMenu(true); }
+    else if(e.key==="ArrowDown"||e.key==="ArrowUp"){ e.preventDefault(); items[(i+(e.key==="ArrowDown"?1:-1)+items.length)%items.length].focus(); }
+    else if(e.key==="Tab") closeMenu();
+    return; }
+  const tag=e.target.tagName, typing=tag==="INPUT"||tag==="SELECT", k=e.key;
+  if(k==="Escape"){ if(popOpen) togglePop(false); else if(e.target.id==="q"){ e.target.value=""; query=""; render(); e.target.blur(); } return; }
+  if((e.metaKey||e.ctrlKey)&&k.toLowerCase()==="f"){ e.preventDefault(); $("#q").focus(); return $("#q").select(); }
+  if(typing||e.metaKey||e.ctrlKey||e.altKey) return;
+  const run=f=>{ e.preventDefault(); f(); }, t=byId(selId), onBtn=tag==="BUTTON";
+  if(k==="/") return run(()=>$("#q").focus());
+  if(k==="n"||k==="N") return run(()=>openForm("new"));
+  if(k==="?") return run(()=>showSheet($("#dKeys")));
+  if(k===",") return run(openSet);
+  if(k==="k"||k==="K") return run(openAll);
+  if(k==="x"||k==="X") return run(()=>stopAll(false));
+  if(k==="t"||k==="T") return run(()=>togglePop());
+  if(k==="ArrowDown"||k==="ArrowUp") return run(()=>move(k==="ArrowDown"?1:-1));
+  if(!t||(onBtn&&(k===" "||k==="Enter"))||!$(`#list [data-row="${t.id}"]`)) return;
+  if(k===" ") return run(()=>toggle(t));
+  if(k==="a"||k==="A") return run(()=>toggleAuto(t));
+  if((k==="r"||k==="R")&&failing(t)) return run(()=>retry(t));
+  if(k==="Enter"||k==="e"||k==="E") return run(()=>openForm("edit",t));
+  if(k==="d"||k==="D") return run(()=>openForm("dup",t));
+  if(k==="c"||k==="C") return run(()=>copy(`localhost:${t.local}`));
+  if(k==="Backspace"||k==="Delete") return run(()=>del(t));
+});
+const clock=()=>$("#clock").textContent=new Date().toLocaleString([],{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+setInterval(()=>{ // 1 s tick: fire due retries, update countdown text only (no full render)
+  tunnels.forEach(t=>{ if(t.state==="reconnecting"&&!t.archived&&!t.inflight&&now()>=t.nextAt) retryNow(t); });
+  $$("[data-cd]").forEach(el=>{ const t=byId(+el.dataset.cd); if(t&&t.state==="reconnecting") el.textContent=secs(t)+"s"; });
+},1000);
+setInterval(()=>{ clock(); render(); },30e3); // tick uptimes
+seed(); clock(); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SSM Tunnels Logs</title>
+<style>
+/* ===== Shared with mockup-v3.html / renderer/styles.css (tokens + shell, unchanged) ===== */
+:root{
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+  --wall:linear-gradient(140deg,#8fb8f2 0%,#b9a7ee 42%,#f2b9a0 100%);
+  --chrome:rgba(236,236,240,.72);--chrome2:rgba(246,246,248,.88);--content:#fff;
+  --text:#1d1d1f;--text2:#5d5d62;--text3:#6e6e73;
+  --line:rgba(0,0,0,.09);--line2:rgba(0,0,0,.2);--fill:rgba(0,0,0,.055);--fill2:rgba(0,0,0,.1);--hover:rgba(0,0,0,.035);--sel:rgba(0,122,255,.09);
+  --accent:#007aff;--accent-t:#0062cc;--accent-f:rgba(0,122,255,.12);--btn:#0066d6;
+  --green:#1b7d36;--green-s:#34c759;--green-f:rgba(52,199,89,.16);
+  --red:#c4001a;--red-s:#ff3b30;--red-f:rgba(255,59,48,.1);
+  --orange:#a34700;--orange-s:#ff9500;--orange-f:rgba(255,149,0,.14);--orange-w:rgba(255,149,0,.06);
+  --sw-off:rgba(0,0,0,.13);--focus:rgba(0,122,255,.5);--toast-act:#5eb0ff;
+  --shadow:0 0 0 .5px rgba(0,0,0,.22),0 22px 70px rgba(0,0,0,.3);--pshadow:0 0 0 .5px rgba(0,0,0,.18),0 10px 36px rgba(0,0,0,.22);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  color-scheme:dark;--wall:linear-gradient(140deg,#14213d 0%,#2e1f4d 45%,#4a2620 100%);
+  --chrome:rgba(40,40,44,.7);--chrome2:rgba(44,44,48,.9);--content:#1e1e20;--text:#f2f2f5;--text2:#a6a6ad;--text3:#8e8e95;
+  --line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.2);--fill:rgba(255,255,255,.075);--fill2:rgba(255,255,255,.13);--hover:rgba(255,255,255,.04);--sel:rgba(10,132,255,.2);
+  --accent:#0a84ff;--accent-t:#5aa9ff;--accent-f:rgba(10,132,255,.2);--btn:#1673e0;
+  --green:#40d763;--green-s:#30d158;--green-f:rgba(48,209,88,.17);--red:#ff6961;--red-s:#ff453a;--red-f:rgba(255,69,58,.15);
+  --orange:#ffac33;--orange-s:#ff9f0a;--orange-f:rgba(255,159,10,.17);--orange-w:rgba(255,159,10,.07);
+  --sw-off:rgba(255,255,255,.17);--focus:rgba(10,132,255,.6);--toast-act:#0062cc;
+  --shadow:0 0 0 .5px rgba(255,255,255,.12),0 22px 70px rgba(0,0,0,.6);--pshadow:0 0 0 .5px rgba(255,255,255,.12),0 10px 36px rgba(0,0,0,.5);
+}}
+:root[data-theme=dark]{
+  color-scheme:dark;--wall:linear-gradient(140deg,#14213d 0%,#2e1f4d 45%,#4a2620 100%);
+  --chrome:rgba(40,40,44,.7);--chrome2:rgba(44,44,48,.9);--content:#1e1e20;--text:#f2f2f5;--text2:#a6a6ad;--text3:#8e8e95;
+  --line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.2);--fill:rgba(255,255,255,.075);--fill2:rgba(255,255,255,.13);--hover:rgba(255,255,255,.04);--sel:rgba(10,132,255,.2);
+  --accent:#0a84ff;--accent-t:#5aa9ff;--accent-f:rgba(10,132,255,.2);--btn:#1673e0;
+  --green:#40d763;--green-s:#30d158;--green-f:rgba(48,209,88,.17);--red:#ff6961;--red-s:#ff453a;--red-f:rgba(255,69,58,.15);
+  --orange:#ffac33;--orange-s:#ff9f0a;--orange-f:rgba(255,159,10,.17);--orange-w:rgba(255,159,10,.07);
+  --sw-off:rgba(255,255,255,.17);--focus:rgba(10,132,255,.6);--toast-act:#0062cc;
+  --shadow:0 0 0 .5px rgba(255,255,255,.12),0 22px 70px rgba(0,0,0,.6);--pshadow:0 0 0 .5px rgba(255,255,255,.12),0 10px 36px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:13px/1.38 var(--font);color:var(--text);background:var(--wall) fixed;-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+button{cursor:default}
+:focus-visible{outline:3px solid var(--focus);outline-offset:1px}
+[hidden]{display:none!important}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.mono{font-family:var(--mono)}
+.i{width:14px;height:14px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.sp{flex:1}
+.menubar{position:fixed;inset:0 0 auto;height:26px;display:flex;align-items:center;gap:16px;padding:0 12px;background:var(--chrome);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);z-index:30}
+.tray{position:relative;display:flex;align-items:center;gap:4px;height:22px;padding:0 7px;border-radius:5px;font-weight:600;font-variant-numeric:tabular-nums}
+.tray .i{width:16px;height:16px}
+.tray .tdot{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--red-s);box-shadow:0 0 0 1.5px var(--chrome2)}
+.win{position:absolute;top:46px;left:50%;transform:translateX(-50%);width:min(1000px,calc(100vw - 32px));height:max(440px,min(680px,calc(100vh - 110px)));display:grid;grid-template-columns:224px minmax(0,1fr);border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.side{display:flex;flex-direction:column;min-height:0;background:var(--chrome);backdrop-filter:blur(40px) saturate(1.8);-webkit-backdrop-filter:blur(40px) saturate(1.8);border-right:1px solid var(--line)}
+.lights{display:flex;gap:8px;padding:18px 18px 8px}
+.lights i{width:12px;height:12px;border-radius:50%;background:#ff5f57;box-shadow:inset 0 0 0 .5px rgba(0,0,0,.2)}
+.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
+.nav{flex:1;overflow:auto;padding:0 10px 10px}
+.nav h3{font-size:11px;font-weight:600;color:var(--text3);margin:14px 8px 3px}
+.nav button{display:flex;align-items:center;gap:8px;width:100%;min-height:28px;padding:0 8px;border:0;border-radius:6px;background:none;text-align:left}
+.nav button:hover{background:var(--hover)}
+.nav button[aria-current]{background:var(--fill2);font-weight:600}
+.nav .i{width:16px;height:16px;color:var(--accent)}
+.nav .prod .i{color:var(--orange-s)}.nav .attn .i{color:var(--red-s)}.nav .ok .i{color:var(--green-s)}
+.nav .n{margin-left:auto;font-size:12px;color:var(--text2);font-variant-numeric:tabular-nums;font-weight:400}
+.nav .two{min-height:40px}.nav .lb{display:flex;flex-direction:column;line-height:1.25;min-width:0}.nav .lb small{color:var(--text2);font-size:11px}
+.side-ft{padding:10px 16px 12px;border-top:1px solid var(--line);font-size:11px;color:var(--text2);display:grid;gap:3px}
+.side-ft span{display:flex;align-items:center;gap:6px}.side-ft .i{width:12px;height:12px;color:var(--green)}
+.side-act{display:flex;align-items:center;margin:4px -7px -4px}
+.link{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 7px;border:0;border-radius:5px;background:none;color:var(--text2);font-size:11px;white-space:nowrap}
+.link:hover{background:var(--fill);color:var(--text)}.side-ft .link .i{color:var(--text2)}
+.pulse{width:6px;height:6px;margin:0 3px;border-radius:50%;background:var(--green-s);animation:pulse 2s ease-in-out infinite}
+.main{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--content)}
+.tb{flex:none;height:52px;display:flex;align-items:center;gap:8px;padding:0 12px 0 20px;border-bottom:1px solid var(--line)}
+.tb h1{font-size:15px;font-weight:700;margin:0;line-height:1.15;white-space:nowrap}
+.sub{font-size:11px;color:var(--text2);margin:0}
+.tb>div:first-child{min-width:0}.tb>div:first-child .sub{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tba{display:contents}
+.search{display:flex;align-items:center;gap:6px;height:28px;flex:0 1 200px;min-width:110px;margin-left:auto;padding:0 8px;border-radius:7px;background:var(--fill);color:var(--text2)}
+.search input{border:0;background:none;outline:none;width:100%;min-width:0;color:var(--text)}
+.search:focus-within{box-shadow:0 0 0 3px var(--focus)}
+.btn{height:28px;padding:0 11px;border:0;border-radius:6px;background:var(--fill);display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-weight:500;flex:none}
+.btn:hover{background:var(--fill2)}.btn:disabled{opacity:.4;pointer-events:none}
+.btn.sm{height:24px;padding:0 9px;font-size:12px}
+.list{flex:1;overflow:auto;padding:0 0 28px}
+.badge{flex:none;font-size:10px;font-weight:700;letter-spacing:.05em;line-height:16px;padding:0 5px;border-radius:4px}
+.badge.prod{background:var(--orange-s);color:#000}
+.kind{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--text2);flex:none}
+.kind .i{width:12px;height:12px}
+.empty{padding:56px 20px;text-align:center;color:var(--text2)}
+.empty .i{display:block;width:28px;height:28px;margin:0 auto 8px;color:var(--text3)}
+.seg{display:inline-flex;gap:2px;padding:2px;border-radius:7px;background:var(--fill)}
+.seg button{flex:1;height:24px;padding:0 10px;border:0;border-radius:5px;background:none;font-size:12px}
+.seg button[aria-pressed=true]{background:var(--content);box-shadow:0 1px 2px rgba(0,0,0,.18);font-weight:600}
+.cmd{margin:0;padding:10px 64px 10px 12px;border-radius:8px;background:var(--fill);font:11.5px/1.55 var(--mono);white-space:pre-wrap;word-break:break-all;color:var(--text2)}
+.toast{position:absolute;left:50%;bottom:16px;z-index:5;display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:9px;background:var(--text);color:var(--content);font-weight:500;box-shadow:var(--pshadow);opacity:0;transform:translate(-50%,8px);pointer-events:none;transition:opacity .18s,transform .18s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+/* mock controls: deliberately NOT app chrome */
+.mock{position:fixed;left:12px;right:12px;bottom:10px;z-index:20;display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:center;padding:7px 10px;border-radius:10px;background:rgba(18,18,22,.86);color:#eee;font-size:12px;border:1px dashed rgba(255,255,255,.35);width:max-content;max-width:calc(100vw - 24px);margin:0 auto}
+.mock b{font-size:10px;letter-spacing:.1em;color:#ffd60a}
+.mock button{height:24px;padding:0 8px;border-radius:5px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#fff}
+.mock button:hover{background:rgba(255,255,255,.18)}
+.mock button[aria-pressed=true]{background:#fff;color:#000}
+.mock .sep{width:1px;height:16px;background:rgba(255,255,255,.2)}
+.mock small{color:#bbb}
+
+/* ===== New: Logs view (lg-*) ===== */
+.btn.live[aria-pressed=true]{background:var(--green-f);color:var(--green)}
+.btn.live[aria-pressed=false] .pulse{animation:none;background:none;box-shadow:inset 0 0 0 1.5px currentColor}
+.lg-bar{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 12px 8px 20px;border-bottom:1px solid var(--line)}
+.lg-bar select{height:28px;padding:0 8px;border:1px solid var(--line2);border-radius:6px;background:var(--content)}
+.lg-bar select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--focus)}
+.lg-bar :disabled,.search:has(:disabled){opacity:.4}
+.lg-pend{flex:none;display:flex;align-items:center;gap:8px;margin:8px 16px 0;padding:5px 6px 5px 12px;border-radius:8px;background:var(--accent-f);color:var(--accent-t);font-size:12px;font-weight:500}
+.lg-g{margin:0 8px}
+.lg-g+.lg-g{border-top:1px solid var(--line)}
+.lg-hw{position:sticky;top:0;z-index:1;margin:0;font-size:inherit;font-weight:inherit;background:var(--content)}
+.lg-h{position:relative;display:grid;grid-template-columns:14px minmax(0,1fr) auto;column-gap:8px;row-gap:2px;align-items:center;width:100%;padding:9px 12px 9px 16px;border:0;border-radius:8px;background:none;text-align:left}
+.lg-h:hover{background:var(--hover)}
+.lg-h:focus-visible,.lg-e:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--focus)}
+.lg-h .chev{color:var(--text2);transition:transform .15s}
+.lg-h[aria-expanded=true] .chev{transform:rotate(90deg)}
+.lg-g.prod .lg-h::before{content:"";position:absolute;left:5px;top:10px;bottom:10px;width:4px;border-radius:2px;background:repeating-linear-gradient(135deg,var(--orange-s) 0 3px,transparent 3px 6px)}
+.lg-t{display:flex;align-items:center;gap:7px;min-width:0}
+.lg-t b{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.badge.env{background:var(--fill2);color:var(--text2);letter-spacing:0;font-weight:600}
+.lg-err{display:inline-flex;align-items:center;gap:3px;flex:none;height:18px;padding:0 7px 0 5px;border-radius:9px;background:var(--red-f);color:var(--red);font-size:11px;font-weight:600}
+.lg-err .i{width:12px;height:12px}
+.lg-err.old{background:var(--fill);color:var(--text2)}
+.lg-m{font-size:11px;color:var(--text2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.lg-s{grid-column:2/-1;display:flex;align-items:center;gap:6px;min-width:0;font-size:12px;color:var(--text2)}
+.lg-s .i{width:13px;height:13px}
+.lg-s b{font-weight:500;color:var(--text);white-space:nowrap}
+.lg-s span{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.lg-es{list-style:none;margin:0 0 10px;padding:0}
+.lg-day{display:flex;align-items:center;gap:8px;padding:8px 10px 3px 16px;font-size:11px;font-weight:600;color:var(--text3)}
+.lg-day::after{content:"";flex:1;border-top:1px solid var(--line)}
+.lg-e{display:grid;grid-template-columns:60px 14px 116px minmax(0,1fr) auto;column-gap:8px;align-items:center;width:100%;min-height:28px;padding:3px 10px 3px 16px;border:0;border-radius:6px;background:none;text-align:left;font-size:12px}
+.lg-e:hover{background:var(--hover)}
+.lg-e[aria-expanded=true]{background:var(--sel)}
+.lg-e time{font:500 11.5px var(--mono);color:var(--text2);font-variant-numeric:tabular-nums}
+.lg-e .lv{display:inline-flex}
+.lg-e .ev{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lg-e .msg{min-width:0;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lg-e[aria-expanded=true] .msg{white-space:normal;overflow-wrap:anywhere}
+.lv-info .lv,.lg-s.lv-info .i{color:var(--text3)}
+.lv-warn .lv,.lv-warn .ev,.lg-s.lv-warn .i,.lg-s.lv-warn b{color:var(--orange)}
+.lv-error .lv,.lv-error .ev,.lg-s.lv-error .i,.lg-s.lv-error b{color:var(--red)}
+.lv-error .msg{color:var(--text)}
+.src{display:inline-flex;align-items:center;gap:3px;font-size:10.5px;font-weight:600;line-height:16px;padding:0 6px;border-radius:8px;background:var(--fill);color:var(--text2)}
+.src.cli{background:var(--fill2);color:var(--text)}
+.src .i{width:10px;height:10px}
+.lg-d{display:grid;gap:6px;margin:2px 10px 8px 106px}
+.lg-d .cmd{padding-right:12px}
+.lg-d>div{display:flex;align-items:center;gap:8px}
+.lg-none{max-width:460px;margin:0 auto}
+.lg-none b{display:block;font-size:15px;color:var(--text);margin-bottom:6px}
+.lg-none p{margin:0 0 8px}
+.lg-ft{flex:none;display:flex;align-items:center;gap:6px;height:28px;padding:0 20px;border-top:1px solid var(--line);font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden}
+.lg-ft .mono{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.lg-ft .i{width:12px;height:12px}
+.main .toast{bottom:40px}
+.new{animation:flash 2.6s ease-out}
+@keyframes flash{from{background:var(--accent-f)}}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.new{background:var(--accent-f)}}
+@media (max-width:860px){.win{grid-template-columns:1fr}.side{display:none}.menubar .mi{display:none}}
+@media (max-width:640px){
+  .tb .lbl{display:none}.tb .btn{width:28px;padding:0;justify-content:center}.search{flex:1}.tb>div:first-child .sub{display:none}
+  .lg-e{grid-template-columns:56px 14px minmax(0,1fr) auto}.lg-e .msg{grid-column:3/-1;grid-row:2}.lg-d{margin-left:16px}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-db" viewBox="0 0 16 16"><ellipse cx="8" cy="4" rx="5" ry="2"/><path d="M3 4v8c0 1.1 2.2 2 5 2s5-.9 5-2V4M3 8c0 1.1 2.2 2 5 2s5-.9 5-2"/></symbol>
+  <symbol id="i-cache" viewBox="0 0 16 16"><path d="M8 2 2 5l6 3 6-3-6-3ZM2 8l6 3 6-3M2 11l6 3 6-3"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 16 16"><rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 2 1.5 13.5h13L8 2Z"/><path d="M8 6.5v3M8 11.6v.1"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="m5.8 5.8 4.4 4.4m0-4.4-4.4 4.4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 16 16"><path d="M8 1.8 3 3.6v4c0 3.2 2.2 5.6 5 6.6 2.8-1 5-3.4 5-6.6v-4L8 1.8Z"/><path d="M8 5.5v3M8 10.6v.1"/></symbol>
+  <symbol id="i-term" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><path d="m4.5 6 2 2-2 2M8.5 10.5h3"/></symbol>
+  <symbol id="i-list" viewBox="0 0 16 16"><path d="M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.1M2.5 8h.1M2.5 12h.1"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 16 16"><path d="M9 1.5 3.5 9H8l-1 5.5L12.5 7H8l1-5.5Z"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 16 16"><path d="M6 2h4M6.5 2v4L3 13a1 1 0 0 0 .9 1.5h8.2A1 1 0 0 0 13 13L9.5 6V2"/></symbol>
+  <symbol id="i-server" viewBox="0 0 16 16"><rect x="2" y="2.5" width="12" height="4.5" rx="1"/><rect x="2" y="9" width="12" height="4.5" rx="1"/><path d="M4.5 4.75h.1M4.5 11.25h.1"/></symbol>
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3.5 3.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-7"/></symbol>
+  <symbol id="i-ring" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/></symbol>
+  <symbol id="i-tunnel" viewBox="0 0 16 16"><path d="M2 13.5V8a6 6 0 0 1 12 0v5.5M5.5 13.5V8.5a2.5 2.5 0 0 1 5 0v5M1 13.5h14"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 16 16"><rect x="1.5" y="2.5" width="13" height="3.5" rx="1"/><path d="M2.5 6v6.5a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1V6M6.5 9h3"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></symbol>
+  <!-- new for Logs -->
+  <symbol id="i-logs" viewBox="0 0 16 16"><rect x="3" y="1.8" width="10" height="12.4" rx="1.5"/><path d="M5.8 5h4.4M5.8 8h4.4M5.8 11h2.6"/></symbol>
+  <symbol id="i-info" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M8 7.3v3.9M8 4.9v.1"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 16 16"><path d="m6 3.5 4.5 4.5L6 12.5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 16 16"><path d="M4 1.8h5.5L12.5 5v9.2H4Z"/><path d="M9.5 1.8V5h3"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 16 16"><path d="M5.5 3.5v9M10.5 3.5v9"/></symbol>
+</defs></svg>
+
+<header class="menubar" aria-label="Menu bar (mock)">
+  <b>SSM Tunnels</b><span class="mi">File</span><span class="mi">Edit</span><span class="mi">View</span><span class="mi">Window</span><span class="mi">Help</span>
+  <span class="sp"></span>
+  <span class="tray" aria-label="SSM Tunnels: 5 connected, 3 need attention"><svg class="i" aria-hidden="true"><use href="#i-tunnel"/></svg><span>5</span><i class="tdot"></i></span>
+  <span id="clock"></span>
+</header>
+
+<div class="win">
+  <aside class="side" aria-label="Sidebar">
+    <div class="lights" aria-hidden="true"><i></i><i></i><i></i></div>
+    <nav class="nav" aria-label="Sidebar">
+      <h3>Tunnels</h3>
+      <button data-a="nav"><svg class="i"><use href="#i-list"/></svg>All Tunnels<span class="n">9</span></button>
+      <button data-a="nav" class="ok"><svg class="i"><use href="#i-bolt"/></svg>Connected<span class="n">5</span></button>
+      <button data-a="nav" class="attn"><svg class="i"><use href="#i-warn"/></svg>Needs Attention<span class="n">3</span></button>
+      <h3>Environment</h3>
+      <button data-a="nav" class="prod"><svg class="i"><use href="#i-shield"/></svg>Production<span class="n">5</span></button>
+      <button data-a="nav"><svg class="i"><use href="#i-flask"/></svg>Staging<span class="n">2</span></button>
+      <button data-a="nav"><svg class="i"><use href="#i-ring"/></svg>Other<span class="n">2</span></button>
+      <h3>Bastions</h3>
+      <button data-a="nav" class="two"><svg class="i"><use href="#i-server"/></svg><span class="lb"><span class="mono">i-0123…cdef0</span><small>us-west-2</small></span><span class="n">7</span></button>
+      <button data-a="nav" class="two"><svg class="i"><use href="#i-server"/></svg><span class="lb"><span class="mono">i-0fed…43210</span><small>eu-central-1</small></span><span class="n">2</span></button>
+      <h3>Activity</h3>
+      <button aria-current="page"><svg class="i"><use href="#i-logs"/></svg>Logs<span class="n"></span></button>
+    </nav>
+    <div class="side-ft">
+      <span><svg class="i"><use href="#i-check"/></svg>aws-cli 2.37.5</span>
+      <span><svg class="i"><use href="#i-check"/></svg>session-manager-plugin 1.2.553.0</span>
+      <span><i class="pulse"></i>Watching ps for Terminal sessions</span>
+      <div class="side-act"><button class="link" data-a="nav"><svg class="i"><use href="#i-archive"/></svg>Archived (1)</button><span class="sp"></span><button class="link" data-a="nav"><svg class="i"><use href="#i-gear"/></svg>Settings</button></div>
+    </div>
+  </aside>
+  <main class="main" id="logs">
+    <div class="tb">
+      <div><h1>Logs</h1><p class="sub" id="subtitle"></p></div>
+      <label class="search"><svg class="i"><use href="#i-search"/></svg><span class="vh">Search logs</span><input id="q" type="search" placeholder="Tunnel, event, message…" spellcheck="false"></label>
+      <span class="tba">
+        <button class="btn live" id="bLive" data-a="live" aria-pressed="true" title="Live: new entries appear at the top of their group as they are written"><i class="pulse" aria-hidden="true"></i><span class="lbl">Live</span></button>
+        <button class="btn" id="bOpen" data-a="open" title="Open events.jsonl in your default app" aria-label="Open Log File"><svg class="i"><use href="#i-doc"/></svg><span class="lbl">Open Log File</span></button>
+        <button class="btn" id="bCopy" data-a="copyVis" title="Copy every entry that matches the filters, as text (collapsed groups included)" aria-label="Copy Visible"><svg class="i"><use href="#i-copy"/></svg><span class="lbl">Copy Visible</span></button>
+      </span>
+    </div>
+    <div class="lg-bar" role="group" aria-label="Log filters">
+      <div class="seg" id="fLevel" role="group" aria-label="Level"><button data-a="lv" data-v="all">All</button><button data-a="lv" data-v="warn" title="Warnings and errors">Warnings+</button><button data-a="lv" data-v="error">Errors</button></div>
+      <div class="seg" id="fSrc" role="group" aria-label="Source"><button data-a="src" data-v="both" title="App and CLI">Both</button><button data-a="src" data-v="app">App</button><button data-a="src" data-v="cli">CLI</button></div>
+      <select id="fRange" aria-label="Time range"><option value="hour">Last hour</option><option value="today">Today</option><option value="7d">Last 7 days</option><option value="all">All time</option></select>
+      <span class="sp"></span>
+      <button class="btn sm" id="bExp" data-a="expandAll">Expand All</button><button class="btn sm" id="bCol" data-a="collapseAll">Collapse All</button>
+    </div>
+    <div class="lg-pend" id="lgPend" hidden></div>
+    <div class="list" id="list"></div>
+    <div class="lg-ft" id="lgFt"></div>
+    <div class="toast" id="toast" aria-hidden="true"></div>
+  </main>
+</div>
+
+<div class="mock" role="region" aria-label="Mock controls, not part of the app">
+  <b>MOCK ONLY</b>
+  <span>Theme</span><button data-theme-set="auto" aria-pressed="true">Auto</button><button data-theme-set="light" aria-pressed="false">Light</button><button data-theme-set="dark" aria-pressed="false">Dark</button>
+  <span class="sep"></span><button data-m="add">Add live entry</button><button data-m="err">Add live error</button>
+  <span class="sep"></span><button data-m="nomatch">No-match filters</button><button data-m="empty" aria-pressed="false">Never-logged state</button><button data-m="clear">Clear data</button><button data-m="seed">Reset sample</button>
+  <span class="sep"></span><small>Keys: / search · ↑↓ groups · → into entries · ← back · ⌥-click a group: all</small>
+</div>
+<div id="live" class="vh" aria-live="polite"></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ic=(n,c="")=>`<svg class="i${c?" "+c:""}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+const MIN=60e3, HR=36e5, DAY=864e5, now=()=>Date.now();
+// Sits next to connections.json, so the app and the CLI resolve the same file (and both follow SSM_TUNNELS_DATA).
+const LOG_PATH="~/Library/Application Support/SSM Tunnels/events.jsonl";
+const TOK="An error occurred (ExpiredTokenException) when calling the StartSession operation: The security token included in the request is expired";
+const DEST="Connection to destination port failed, check SSM Agent logs.";
+const ENVS={prod:"Production",stg:"Staging",other:"Other"};
+// Log lines carry only the tunnel NAME. Env + kind are joined from connections.json at render time;
+// a name that no longer resolves (removed / purged) renders as "Deleted" with no env badge.
+const TUN={"onyx-prod":["prod","PostgreSQL","db"],"onyx-stg":["stg","PostgreSQL","db"],"zephyr-prod":["prod","PostgreSQL","db"],"glacier-prod":["prod","PostgreSQL","db"],
+  "glacier-stg-redis":["stg","Redis","cache"],"glacier-cache":["prod","Valkey","cache"],"kelp-1":["other","HTTPS","lock"],"glacier-jobs-redis":["prod","Redis","cache",true]};
+const ENVB={prod:'<span class="badge prod" title="Production — live data">PROD</span>',stg:'<span class="badge env">Staging</span>',other:'<span class="badge env">Other</span>'};
+const EV={app_start:"App started",connect:"Connected",disconnect:"Disconnected",reconnect_scheduled:"Retry scheduled",reconnect_attempt:"Retry attempt",gave_up:"Gave up",
+  auto_archived:"Auto-archived",purged:"Deleted permanently",restored:"Restored",imported:"Imported",added:"Added",edited:"Edited",removed:"Removed",
+  settings:"Settings changed",archive_sweep:"Archive check",kill:"Stopped all"};
+const label=e=>e.event==="connect"&&e.level==="error"?"Connect failed":e.event==="disconnect"&&e.level!=="info"?"Session dropped"
+  :EV[e.event]||e.event.replace(/_/g," ").replace(/^./,c=>c.toUpperCase());
+const LV={info:["info","Info","entry"],warn:["warn","Warning","warning"],error:["x","Error","error"]};
+const LVF={all:"",warn:"Warnings+",error:"Errors"}, SRCF={both:"",app:"App",cli:"CLI"};
+const mid=t=>{const d=new Date(t);d.setHours(0,0,0,0);return +d};
+const RANGES={hour:["Last hour",()=>now()-HR],today:["Today",()=>mid(now())],"7d":["Last 7 days",()=>now()-7*DAY],all:["All time",()=>-Infinity]};
+const p2=n=>String(n).padStart(2,"0");
+const hms=t=>{const d=new Date(t);return `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`};
+const ymd=t=>{const d=new Date(t);return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`};
+const dshort=t=>new Date(t).toLocaleDateString([],{weekday:"short",day:"numeric",month:"short"});
+const full=t=>`${dshort(t)} ${new Date(t).getFullYear()}, ${hms(t)}`;
+const dayLbl=t=>{const n=Math.round((mid(now())-mid(t))/DAY);return n===0?`Today · ${dshort(t)}`:n===1?`Yesterday · ${dshort(t)}`:dshort(t)};
+const ago=t=>{const m=Math.max(0,Math.floor((now()-t)/MIN));return m<1?"just now":m<60?`${m}m ago`:m<1440?`${Math.floor(m/60)}h ${p2(m%60)}m ago`:`${Math.floor(m/1440)}d ago`};
+const raw=e=>({time:new Date(e.time).toISOString(),source:e.source,level:e.level,tunnel:e.tunnel,event:e.event,message:e.message});
+const key=e=>e.tunnel||"";                // "" = General
+const gid=k=>"g-"+(k||"-general");        // tunnel names can't start with "-", so no clash
+const byTime=(a,b)=>b.time-a.time||b.id-a.id;
+
+/* ---------- sample data (relative to now, spans > 7 days). Messages carry name, ports, PID only: never hosts, instance IDs, profiles, commands or tokens. ---------- */
+let uid=0;
+function sample(){
+  const N=now(), L=[], E=(time,tunnel,level,event,message,source="app")=>L.push({id:++uid,time,source,level,tunnel,event,message});
+  const ag=(m,s=0)=>N-m*MIN-s*1e3, on=(d,h,m,s=0)=>{const x=new Date(N);x.setDate(x.getDate()-d);x.setHours(h,m,s,0);return +x};
+  E(on(16,9,14,2),null,"info","app_start","First launch · version 1.0.0");
+  E(on(16,9,15,40),null,"info","imported","Imported 10 tunnels from ~/bin/ssm-connect");
+  E(on(12,18,20,5),null,"info","settings","Delete archived after: Never → 7 days");
+  E(on(8,10,0,3),null,"info","archive_sweep","Hourly check: archived zephyr-stg (failing 7 days)");
+  E(on(1,10,0,4),null,"info","archive_sweep","Hourly check: deleted zephyr-stg permanently (archived 7 days)");
+  E(on(1,19,5,44),null,"info","kill","Stopped 3 port-forward sessions","cli");
+  E(ag(14*60+2),null,"info","archive_sweep","Hourly check: archived glacier-jobs-redis (failing 7 days)");
+  E(ag(190),null,"info","app_start","Opened at login · connecting 4 auto tunnels");
+  E(on(15,10,0,0),"zephyr-stg","info","connect","Connected on localhost:1436 · PID 30112");
+  E(on(15,10,42,9),"zephyr-stg","error","gave_up",`Gave up after 5 attempts: ${DEST}`);
+  E(on(8,10,0,3),"zephyr-stg","warn","auto_archived","Failing 7 days in a row · deleted permanently in 7 days unless restored");
+  E(on(1,10,0,4),"zephyr-stg","info","purged","Deleted permanently · archived for 7 days");
+  E(on(8,14,2,30),"glacier-jobs-redis","error","gave_up",`Gave up after 5 attempts: ${DEST}`);
+  E(on(4,9,1,12),"glacier-jobs-redis","error","connect",DEST);
+  E(ag(14*60+2),"glacier-jobs-redis","warn","auto_archived","Failing 7 days in a row · deleted permanently in 7 days unless restored");
+  E(on(6,15,2,0),"glacier-cache","info","added","Added · localhost:16002 → port 6379","cli");
+  E(on(6,15,3,0),"glacier-cache","info","connect","Started in the background on localhost:16002 · PID 41290","cli");
+  E(on(5,11,0,0),"onyx-stg","info","added","Added · localhost:15004 → port 5432");
+  E(on(2,9,0,0),"onyx-stg","info","restored","Restored from Archived · failure clock restarted");
+  E(ag(37),"onyx-stg","info","connect","Connected on localhost:15004 · PID 50331");
+  E(on(2,14,3,9),"kelp-1","error","connect","Port 443 already in use by kelp-2");
+  E(on(2,14,4,0),"kelp-1","info","edited","Auto-connect on");
+  E(ag(48),"kelp-1","info","connect","Connected on localhost:443 · PID 49102");
+  E(on(2,10,12,0),"onyx-prod","info","edited","Local port 1435 → 15002","cli");
+  E(on(1,9,31,2),"onyx-prod","info","connect","Started in the background on localhost:15002 · PID 47188","cli");
+  E(on(1,19,5,44),"onyx-prod","info","disconnect","Stopped · PID 47188","cli");
+  E(ag(190,-20),"onyx-prod","info","connect","Connected on localhost:15002 · PID 48211");
+  let s=on(1,22,40,10); E(s,"glacier-stg-redis","warn","disconnect","Session ended while the Mac was asleep");
+  E(s+=120,"glacier-stg-redis","warn","reconnect_scheduled","Retry 1 of 5 in 2s");
+  E(s+=3300,"glacier-stg-redis","warn","reconnect_attempt","Attempt 1 of 5 failed: could not reach SSM (no network yet)");
+  E(s+=40,"glacier-stg-redis","warn","reconnect_scheduled","Retry 2 of 5 in 4s");
+  E(s+=5200,"glacier-stg-redis","info","connect","Reconnected on attempt 2 · localhost:16004 · PID 50117");
+  E(ag(12),"glacier-stg-redis","info","disconnect","Disconnected by you · PID 50117");
+  E(on(1,9,30,11),"zephyr-prod","info","connect","Connected on localhost:15001 · PID 47120");
+  E(on(1,18,2,40),"zephyr-prod","info","disconnect","Disconnected by you · PID 47120");
+  E(ag(190,-35),"zephyr-prod","info","connect","Connected on localhost:15001 · PID 48890");
+  // retry run: backoff 2, 4, 8, 16, 32 s (+ ~1.1 s per attempt), so the time column shows the growing gaps
+  let t=ag(6); E(t,"zephyr-prod","error","disconnect",`Session ended: ${TOK}`);
+  [2,4,8,16,32].forEach((d,i)=>{ E(t+=120,"zephyr-prod","warn","reconnect_scheduled",`Retry ${i+1} of 5 in ${d}s`);
+    E(t+=d*1e3+1100,"zephyr-prod","warn","reconnect_attempt",`Attempt ${i+1} of 5 failed: ExpiredTokenException`); });
+  E(t+=30,"zephyr-prod","error","gave_up",`Gave up after 5 attempts: ${TOK}`);
+  return L;
+}
+const LIVE=[["glacier-stg-redis","info","connect","Connected on localhost:16004 · PID {pid}"],["onyx-prod","info","disconnect","Stopped · PID 48211","cli"],
+  ["kelp-1","warn","disconnect","Session ended while the Mac was asleep"],["kelp-1","warn","reconnect_scheduled","Retry 1 of 5 in 2s"],
+  ["kelp-1","info","connect","Reconnected on attempt 1 · localhost:443 · PID {pid}"],[null,"info","settings","Auto-archive after: 7 → 5 days"],
+  ["onyx-stg","info","edited","Description changed","cli"]];
+const LIVE_ERR=["glacier-cache","error","connect",DEST];
+
+/* ---------- state ---------- */
+const F0={q:"",level:"all",source:"both",range:"7d"};
+let entries=sample(), stash=null, F={...F0}, live=true, pending=[], liveI=0;
+let open=defaultOpen(), openE=new Set(), fresh=new Set();   // expand state survives filtering + live updates
+function defaultOpen(){ // groups with a warning or error in the last 24 h start open; else the most recent group
+  const o=new Set(entries.filter(e=>e.level!=="info"&&now()-e.time<DAY).map(key));
+  if(!o.size&&entries.length) o.add(key([...entries].sort(byTime)[0])); return o;
+}
+const match=e=>{
+  if(e.time<RANGES[F.range][1]()) return false;
+  if(F.level==="warn"&&e.level==="info"||F.level==="error"&&e.level!=="error") return false;
+  if(F.source!=="both"&&e.source!==F.source) return false;
+  const q=F.q.trim().toLowerCase(); return !q||[e.tunnel||"general",label(e),e.event,e.message,e.source].join(" ").toLowerCase().includes(q);
+};
+function groups(){ // only groups with matches; ordered by their most recent matching entry
+  const m=new Map();
+  for(const e of entries){ const k=key(e); if(!m.has(k)) m.set(k,{key:k,all:[],vis:[]}); const g=m.get(k); g.all.push(e); if(match(e)) g.vis.push(e); }
+  const gs=[...m.values()].filter(g=>g.vis.length); gs.forEach(g=>g.vis.sort(byTime));
+  return gs.sort((a,b)=>byTime(a.vis[0],b.vis[0]));
+}
+
+/* ---------- rendering ---------- */
+function headHTML(g){
+  const k=g.key, t=TUN[k], last=g.vis[0], o=open.has(k), name=k||"General";
+  const errs=g.vis.filter(e=>e.level==="error"), hot=errs.some(e=>now()-e.time<DAY), n=errs.length;
+  const tags=!k?`<span class="kind">${ic("tunnel")}App and CLI</span>`
+    :!t?`<span class="kind" title="No longer in connections.json">${ic("x")}Deleted</span>`
+    :ENVB[t[0]]+`<span class="kind">${ic(t[2])}${t[1]}</span>`+(t[3]?`<span class="kind">${ic("archive")}Archived</span>`:"");
+  const cnt=g.vis.length===g.all.length?`${g.all.length} ${g.all.length>1?"entries":"entry"}`:`${g.vis.length} of ${g.all.length}`;
+  const pill=n?`<span class="lg-err${hot?"":" old"}" title="${hot?"Errors in the last 24 hours":"No errors in the last 24 hours"}">${ic("x")}${n} error${n>1?"s":""}</span>`:"";
+  const aria=`${name}${t?", "+ENVS[t[0]]:k?", deleted tunnel":""}, ${cnt}${n?`, ${n} error${n>1?"s":""}`:""}, last event ${ago(last.time)}: ${label(last)}`;
+  return `<h2 class="lg-hw"><button class="lg-h${g.vis.some(e=>fresh.has(e.id))?" new":""}" data-a="grp" data-g="${esc(k)}" aria-expanded="${o}"${o?` aria-controls="${gid(k)}"`:""} aria-label="${esc(aria)}" title="${o?"Collapse":"Expand"} · ⌥-click for all groups">
+    ${ic("chev","chev")}<span class="lg-t"><b>${esc(name)}</b>${tags}${pill}</span>
+    <span class="lg-m">${cnt} · <span title="${esc(full(last.time))}">${ago(last.time)}</span></span>
+    <span class="lg-s lv-${last.level}">${ic(LV[last.level][0])}<b>${esc(label(last))}</b><span>${esc(last.message)}</span></span></button></h2>`;
+}
+function entHTML(e){
+  const o=openE.has(e.id), [li,lt]=LV[e.level];
+  return `<li><button class="lg-e lv-${e.level}${fresh.has(e.id)?" new":""}" data-a="ent" data-e="${e.id}" aria-expanded="${o}"${o?` aria-controls="d${e.id}"`:""} title="${esc(full(e.time))}">
+    <time datetime="${raw(e).time}">${hms(e.time)}</time><span class="lv">${ic(li)}<span class="vh">${lt}:</span></span><span class="ev">${esc(label(e))}</span><span class="msg">${esc(e.message)}</span>
+    <span class="src${e.source==="cli"?" cli":""}" title="Written by ${e.source==="cli"?"the ssm-tunnels CLI":"the app"}">${e.source==="cli"?ic("term")+"CLI":"App"}</span></button>
+    ${o?`<div class="lg-d" id="d${e.id}"><pre class="cmd">${esc(JSON.stringify(raw(e),null,2))}</pre><div><button class="btn sm" data-a="copyE" data-e="${e.id}">Copy Entry</button><span class="sub">The line as stored in events.jsonl</span></div></div>`:""}</li>`;
+}
+function entsHTML(g){ // newest first; a day divider whenever the date changes (and on top unless the whole group is today)
+  const dk=t=>new Date(t).toDateString(), multi=new Set(g.vis.map(e=>dk(e.time))).size>1, today=dk(now());
+  let prev=null, h="";
+  for(const e of g.vis){ const d=dk(e.time); if(d!==prev&&(prev!==null||multi||d!==today)) h+=`<li class="lg-day">${dayLbl(e.time)}</li>`; prev=d; h+=entHTML(e); }
+  return `<ul class="lg-es" id="${gid(g.key)}" aria-label="${esc(g.key||"General")} entries">${h}</ul>`;
+}
+const filterDesc=()=>[F.q.trim()&&`“${F.q.trim()}”`,LVF[F.level],SRCF[F.source],RANGES[F.range][0]].filter(Boolean).join(" · ");
+function listHTML(gs){
+  if(!entries.length) return `<div class="empty lg-none">${ic("logs")}<b>Nothing logged yet</b>
+    <p>Connects, drops, retries, auto-archive and changes made in the app or with the <span class="mono">ssm-tunnels</span> CLI show up here, grouped by tunnel.</p>
+    <p>Only tunnel names, ports and PIDs are recorded, never commands or credentials.</p></div>`;
+  if(!gs.length) return `<div class="empty">${ic("search")}No entries match ${esc(filterDesc())}.<br><br><button class="btn sm" data-a="reset">Reset Filters</button></div>`;
+  return gs.map(g=>`<section class="lg-g${TUN[g.key]&&TUN[g.key][0]==="prod"?" prod":""}">${headHTML(g)}${open.has(g.key)?entsHTML(g):""}</section>`).join("");
+}
+function ftHTML(){
+  const n=entries.length, b=entries.reduce((s,e)=>s+JSON.stringify(raw(e)).length+1,0);
+  const size=!n?"not created yet":b<1024?`${b} B`:`${(b/1024).toFixed(1)} KB`;
+  return `${ic("doc")}<span class="mono" title="${LOG_PATH}">${LOG_PATH}</span><span>· ${size} · rotates at 1 MB, keeps 5${n?` · oldest entry ${dshort(Math.min(...entries.map(e=>e.time)))}`:""}</span>`;
+}
+function pendRender(){
+  const p=$("#lgPend"), n=pending.length; p.hidden=live||!n;
+  if(n&&!live) p.innerHTML=`${ic("pause")}<span>${n} new entr${n>1?"ies":"y"} since Live was paused</span><span class="sp"></span><button class="btn sm" data-a="showPend">Show</button><button class="btn sm" data-a="live">Resume Live</button>`;
+}
+function render(){
+  const a=document.activeElement, list=$("#list"), top=list.scrollTop;
+  let fs=null; if(a&&a.closest&&a.closest("#list")&&a.dataset.a){ const d=a.dataset; fs=`[data-a="${d.a}"]${d.e?`[data-e="${d.e}"]`:""}${d.g!=null?`[data-g="${CSS.escape(d.g)}"]`:""}`; }
+  const gs=groups(), total=entries.length, none=!total, vis=gs.reduce((n,g)=>n+g.vis.length,0), errs=gs.reduce((n,g)=>n+g.vis.filter(e=>e.level==="error").length,0);
+  $("#subtitle").textContent=none?"Nothing logged yet":`${vis===total?total:`${vis} of ${total}`} entries · ${gs.length} group${gs.length===1?"":"s"}${errs?` · ${errs} error${errs>1?"s":""}`:""}${live?"":" · Live paused"}`;
+  $$("#fLevel button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===F.level));
+  $$("#fSrc button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===F.source));
+  $("#fRange").value=F.range; [...$$(".lg-bar button"),$("#fRange"),$("#q"),$("#bOpen")].forEach(x=>x.disabled=none);
+  const ks=gs.map(g=>g.key); $("#bExp").disabled=!ks.length||ks.every(k=>open.has(k)); $("#bCol").disabled=!ks.some(k=>open.has(k));
+  $("#bCopy").disabled=!vis; $("#bLive").setAttribute("aria-pressed",live);
+  pendRender(); list.innerHTML=listHTML(gs); list.scrollTop=top; $("#lgFt").innerHTML=ftHTML();
+  if(fs){ const el=$(fs,list); if(el) el.focus({preventScroll:true}); }
+}
+
+/* ---------- live tail ---------- */
+function addLive([tunnel,level,event,msg,source="app"]){
+  const e={id:++uid,time:now(),source,level,tunnel,event,message:msg.replace("{pid}",40000+Math.floor(Math.random()*20000))};
+  if(!live){ pending.push(e); pendRender(); return announce(`${pending.length} new entr${pending.length>1?"ies":"y"} waiting. Live is paused.`); }
+  ingest([e]);
+}
+function ingest(es){
+  es.forEach(e=>{ if(!entries.some(x=>key(x)===key(e))) open.add(key(e)); entries.push(e); fresh.add(e.id); }); // a brand-new group opens; existing groups keep their state
+  render(); say(es);
+  setTimeout(()=>{ es.forEach(e=>fresh.delete(e.id));
+    $$("#list .new").forEach(x=>{ const id=x.dataset.e, g=x.dataset.g;
+      if(id?!fresh.has(+id):!entries.some(e=>fresh.has(e.id)&&key(e)===g)) x.classList.remove("new"); }); },3000);
+}
+let sayQ=[], sayT; function say(es){ // bursts become one polite announcement
+  sayQ.push(...es); clearTimeout(sayT);
+  sayT=setTimeout(()=>{ const n=sayQ.length, x=sayQ[n-1], er=sayQ.filter(e=>e.level==="error").length;
+    announce(n===1?`New ${LV[x.level][2]} in ${x.tunnel||"General"}: ${label(x)}. ${x.message}`:`${n} new log entries${er?`, ${er} error${er>1?"s":""}`:""}`); sayQ=[]; },800);
+}
+function setLive(on){
+  live=on; announce(on?"Live on":"Live paused. New entries wait until you show them.");
+  if(on&&pending.length){ const p=pending; pending=[]; ingest(p); } else render();
+}
+function showPend(){
+  const p=pending, k=key(p[p.length-1]); pending=[]; ingest(p);
+  const h=$(`#list .lg-h[data-g="${CSS.escape(k)}"]`); if(h){ h.focus(); h.scrollIntoView({block:"nearest"}); }
+}
+
+/* ---------- actions ---------- */
+const toggleG=k=>{ open.has(k)?open.delete(k):open.add(k); render(); };
+function setAll(on){ new Set(entries.map(key)).forEach(k=>on?open.add(k):open.delete(k)); render(); announce(on?"All groups expanded":"All groups collapsed"); }
+function copyVis(){
+  const lines=groups().flatMap(g=>g.vis.map(e=>`${ymd(e.time)} ${hms(e.time)}  ${e.level.toUpperCase().padEnd(5)}  ${(e.tunnel||"general").padEnd(16)}  ${e.event.padEnd(19)}  ${e.source.padEnd(3)}  ${e.message}`));
+  copy(lines.join("\n")); toast(`Copied ${lines.length} entr${lines.length>1?"ies":"y"} matching the filters, collapsed groups included`);
+}
+let tt; function toast(msg){ const el=$("#toast"); el.textContent=msg; el.classList.add("show"); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove("show"),2600); announce(msg); }
+function announce(m){ const l=$("#live"); l.textContent=""; setTimeout(()=>l.textContent=m,40); }
+async function copy(text,btn){
+  try{ await navigator.clipboard.writeText(text); }catch(_){ /* file:// may reject; the real app uses Electron's clipboard */ }
+  if(btn){ const o=btn.textContent; btn.textContent="Copied"; announce("Entry copied"); setTimeout(()=>btn.textContent=o,1200); }
+}
+function act(a,b,ev){
+  switch(a){
+    case "grp": return ev.altKey?setAll(!open.has(b.dataset.g)):toggleG(b.dataset.g);
+    case "ent": { const id=+b.dataset.e; openE.has(id)?openE.delete(id):openE.add(id); return render(); }
+    case "copyE": return copy(JSON.stringify(raw(entries.find(e=>e.id===+b.dataset.e))),b);
+    case "lv": F.level=b.dataset.v; return render();
+    case "src": F.source=b.dataset.v; return render();
+    case "live": return setLive(!live);
+    case "showPend": return showPend();
+    case "expandAll": return setAll(true);
+    case "collapseAll": return setAll(false);
+    case "copyVis": return copyVis();
+    case "open": return toast("Opens events.jsonl in your default app (mock)");
+    case "reset": { F={...F0}; $("#q").value=""; render(); const h=$("#list .lg-h"); return h?h.focus():$("#q").focus(); }
+    case "nav": return toast("Mock: the tunnel views live in mockup-v3.html");
+  }
+}
+function mock(m){
+  if(m==="add") return addLive(LIVE[liveI++%LIVE.length]);
+  if(m==="err") return addLive(LIVE_ERR);
+  if(m==="nomatch"){ F={...F,level:"error",source:"cli"}; return render(); }
+  if(m==="empty"){ if(entries.length){ stash=entries; entries=[]; } else { entries=stash||sample(); stash=null; open=defaultOpen(); } pending=[]; }
+  if(m==="clear"){ entries=[]; stash=null; pending=[]; }
+  if(m==="seed"){ entries=sample(); stash=null; pending=[]; live=true; F={...F0}; $("#q").value=""; open=defaultOpen(); openE.clear(); toast("Sample data restored"); }
+  $('[data-m="empty"]').setAttribute("aria-pressed",!entries.length); render();
+}
+
+/* ---------- events (delegated: no inline handlers, works under the app's CSP) ---------- */
+document.addEventListener("click",ev=>{
+  const th=ev.target.closest("[data-theme-set]");
+  if(th){ const v=th.dataset.themeSet; v==="auto"?document.documentElement.removeAttribute("data-theme"):document.documentElement.setAttribute("data-theme",v);
+    return $$("[data-theme-set]").forEach(x=>x.setAttribute("aria-pressed",x===th)); }
+  const m=ev.target.closest("[data-m]"); if(m) return mock(m.dataset.m);
+  const b=ev.target.closest("[data-a]"); if(b&&!b.disabled) act(b.dataset.a,b,ev);
+});
+$("#q").addEventListener("input",e=>{ F.q=e.target.value; render(); });
+$("#fRange").addEventListener("change",e=>{ F.range=e.target.value; render(); });
+document.addEventListener("keydown",e=>{
+  const t=e.target, k=e.key, typing=t.tagName==="INPUT"||t.tagName==="SELECT";
+  if((e.metaKey||e.ctrlKey)&&k.toLowerCase()==="f"){ e.preventDefault(); $("#q").focus(); return $("#q").select(); }
+  if(k==="Escape"&&t.id==="q"){ t.value=""; F.q=""; render(); return; }
+  if(typing||e.metaKey||e.ctrlKey||e.altKey) return;
+  if(k==="/"){ e.preventDefault(); return $("#q").focus(); }
+  const h=t.closest&&t.closest(".lg-h"), en=t.closest&&t.closest(".lg-e"); if(!h&&!en) return;
+  const heads=$$("#list .lg-h"), go=x=>{ e.preventDefault(); if(x){ x.focus(); x.scrollIntoView({block:"nearest"}); } };
+  if(h){ const i=heads.indexOf(h), g=h.dataset.g;
+    if(k==="ArrowDown") return go(heads[i+1]); if(k==="ArrowUp") return go(heads[i-1]);
+    if(k==="Home") return go(heads[0]); if(k==="End") return go(heads[heads.length-1]);
+    if(k==="ArrowRight") return open.has(g)?go($(".lg-e",h.closest(".lg-g"))):(e.preventDefault(),toggleG(g));
+    if(k==="ArrowLeft"&&open.has(g)){ e.preventDefault(); return toggleG(g); }
+  } else { const sec=en.closest(".lg-g"), es=$$(".lg-e",sec), i=es.indexOf(en), hd=$(".lg-h",sec);
+    if(k==="ArrowDown") return go(es[i+1]||heads[heads.indexOf(hd)+1]); if(k==="ArrowUp") return go(es[i-1]||hd); if(k==="ArrowLeft") return go(hd);
+  }
+});
+const clock=()=>$("#clock").textContent=new Date().toLocaleString([],{weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+setInterval(()=>{ clock(); render(); },30e3); // relative times + "Last hour"/"Today" windows move
+clock(); render();
+</script>
+</body>
+</html>
